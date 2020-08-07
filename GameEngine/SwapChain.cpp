@@ -1,0 +1,74 @@
+#include "SwapChain.h"
+#include "GraphicsEngine.h"
+
+
+bool SwapChain::init(HWND hwnd, UINT width, UINT height)
+{
+	OutputDebugString("Entering SwapChain::init\n");
+	
+	ID3D11Device* device = GraphicsEngine::get()->m_d3d_device;
+	DXGI_SWAP_CHAIN_DESC sc_desc;
+	ZeroMemory(&sc_desc, sizeof(sc_desc));
+
+	sc_desc.BufferCount = 1;
+	sc_desc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+	sc_desc.SampleDesc.Count = 1;
+	sc_desc.SampleDesc.Quality = 0;
+	sc_desc.BufferDesc.Width = width;
+	sc_desc.BufferDesc.Height = height;
+	sc_desc.BufferDesc.RefreshRate.Numerator = 60;
+	sc_desc.BufferDesc.RefreshRate.Denominator= 1;
+	sc_desc.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	sc_desc.OutputWindow = hwnd;
+	sc_desc.Windowed = true;
+
+		HRESULT hr = GraphicsEngine::get()->m_dxgi_factory->CreateSwapChain(device, &sc_desc, &m_dxgi_swapchain);
+
+	if (FAILED(hr))
+	{
+		OutputDebugString("Failed to CreateSwapChain\n");
+		return false;
+	}
+
+	OutputDebugString("Created SwapChain\n");
+
+	ID3D11Texture2D* back_buffer=nullptr;
+	hr = m_dxgi_swapchain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&back_buffer);
+
+	if (FAILED(hr))
+	{
+		OutputDebugString("Failed to GetBuffer\n");
+		return false;
+	}
+
+	hr = device->CreateRenderTargetView(back_buffer, NULL, &m_render_target_view);
+	back_buffer->Release();
+
+	if (FAILED(hr))
+	{
+		OutputDebugString("Failed to CreateRenderTargetView\n");
+		return false;
+	}
+
+
+	return true;
+}
+
+bool SwapChain::release()
+{
+	OutputDebugString("CLEANUP SwapChain::release\n");
+	m_dxgi_swapchain->Release();
+	delete this;
+	return true;
+}
+
+bool SwapChain::present(bool vsync)
+{
+	m_dxgi_swapchain->Present(vsync, NULL);
+	return true;
+}
+
+ID3D11RenderTargetView* SwapChain::getRenderTargetView()
+{
+	return m_render_target_view;
+}

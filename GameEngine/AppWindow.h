@@ -1,0 +1,58 @@
+#pragma once
+#include "Window.h"
+#include "SwapChain.h"
+#include "VertexBuffer.h"
+#include "VertexShader.h"
+#include "PixelShader.h"
+#include "ConstantBuffer.h"
+#include "IndexBuffer.h"
+#include "InputListener.h"
+#include "Camera.h"
+
+
+
+class AppWindow: public Window, public InputListener
+{
+public:
+
+	// Inherited via Window
+	
+	virtual void onCreate() override;
+	virtual void onUpdate() override;
+	virtual void onDestroy() override;
+
+	//Listener call backs for Input
+
+	virtual void onKeyDown(int key) override;
+	virtual void onKeyUp(int key) override;
+	virtual void onMouseMove(Point point) override;
+	virtual void onLeftMouseDown(Point point) override;
+	virtual void onRightMouseDown(Point point) override;
+	virtual void onLeftMouseUp(Point point) override;
+	virtual void onRightMouseUp(Point point) override;
+	virtual void onFocus() override;
+	virtual void onKillFocus() override;
+
+
+	void updateQuadPosition();
+
+private:
+	SwapChain* m_swap_chain;
+	VertexBuffer* m_vertex_buffer;
+	VertexShader* m_vertex_shader;
+	PixelShader* m_pixel_shader;
+	ConstantBuffer* m_constant_buffer;
+	IndexBuffer* m_index_buffer;
+	Camera *m_camera;
+	float m_old_delta;
+	float m_new_delta;
+	float m_delta_time;
+	float m_delta_pos;
+	float m_delta_scale;
+	float m_rot_x;
+	float m_rot_y;
+	float m_rot_z;
+	float m_trans_x;
+	float m_aspect_ratio;	
+};
+
