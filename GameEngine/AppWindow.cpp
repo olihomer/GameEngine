@@ -1,4 +1,5 @@
 #include <Windows.h>
+#include <iostream>
 #include "AppWindow.h"
 #include "GraphicsEngine.h"
 #include "SwapChain.h"
@@ -7,6 +8,7 @@
 #include "Matrix4x4.h"
 #include "InputSystem.h"
 
+using namespace std;
 
 struct vertex
 {
@@ -21,7 +23,7 @@ struct constant
 	Matrix4x4 m_world;
 	Matrix4x4 m_view;
 	Matrix4x4 m_proj;
-	unsigned int m_time;
+	unsigned int m_time=0;
 };
 
 
@@ -29,16 +31,25 @@ void AppWindow::onCreate()
 {
 	OutputDebugString("Entering AppWindow::onCreate\n");
 	Window::onCreate();
+
+	RECT rc = this->getClientWindowRect();
+	int width = rc.right - rc.left;
+	int height = rc.bottom - rc.top;
+
 	GraphicsEngine::get()->init();
+		
+	// INIT INPUT SYSTEM
+
 	InputSystem::get()->addListener(this);
+	InputSystem::get()->hideCursor();
+	InputSystem::get()->setCursorPosition(Point(width >> 1, height >> 1));
 
 	//INIT SWAP CHAIN
 
 	m_swap_chain = GraphicsEngine::get()->createSwapChain();
-	RECT rc = this->getClientWindowRect();
 
 	if (this->m_hwnd == nullptr)OutputDebugString("Warning: m_hwnd is null\n");
-	m_swap_chain->init(this->m_hwnd, rc.right - rc.left, rc.bottom - rc.top);
+	m_swap_chain->init(this->m_hwnd, width, height);
 
 	// PREPARE VERTEX BUFFER, INDEX BUFFER, VERTEX DATA AND VERTEX SHADER
 
@@ -86,7 +97,7 @@ void AppWindow::onCreate()
 
 	//LOAD VERTEX BUFFER
 
-	m_vertex_buffer->load(vertex_list, size_vertex, size_list, shader_byte_code, size_shader);
+	m_vertex_buffer->load(vertex_list, size_vertex, size_list, shader_byte_code, (UINT)size_shader);
 
 	//LOAD INDEX BUFFER
 
@@ -113,9 +124,9 @@ void AppWindow::onCreate()
 
 	// CREATE CAMERA
 
-	Vector3D pos = Vector3D(0, 0, -4);
-	Vector3D lookat = Vector3D(0, 0, 1);
-	Vector3D up= Vector3D(0, 1, 0);
+	Vector3D pos = Vector3D(4, 4, 0);
+	Vector3D lookat = Vector3D(0, 0, 0);
+	Vector3D up= Vector3D(-1, 1, 1);
 	m_camera = new Camera(pos,lookat,up, 1.0f, 0.1f, 100.0f, 90);
 	
 }
@@ -124,6 +135,7 @@ void AppWindow::onUpdate()
 {
 	Window::onUpdate();
 	InputSystem::get()->update();
+	
 	if (isRun()) {
 
 		//CLEAR RENDER TARGET, UPDATE VIEWPORT SIZE
@@ -134,6 +146,7 @@ void AppWindow::onUpdate()
 		m_camera->setAspect (((float)(rc.right - rc.left)) / ((float)(rc.bottom - rc.top)));
 
 		// UPDATE POSITIONS
+		
 		this->updateQuadPosition();
 				
 		// UPDATE AND BIND CONSTANT BUFFER
@@ -156,15 +169,20 @@ void AppWindow::onUpdate()
 		::QueryPerformanceCounter(&counter);
 		
 		m_old_delta = m_new_delta;
-		m_new_delta = (float)counter.LowPart;  
-		m_delta_time = m_old_delta ? ((m_new_delta - m_old_delta) / 10000000.0f) : 0;
-
+		m_new_delta = counter.QuadPart;  
+		m_delta_time = (float)m_old_delta ? ((m_new_delta - m_old_delta) / 10000000.0f) : 0;
+		
 		}
+	else
+	{
+		InputSystem::get()->removeListener(this);
+	}
 	}
 	
 
 void AppWindow::onDestroy()
 {
+	InputSystem::get()->showCursor();
 	Window::onDestroy();
 	m_swap_chain->release();
 	m_vertex_buffer->release();
@@ -174,7 +192,6 @@ void AppWindow::onDestroy()
 	m_index_buffer->release();
 	delete m_camera;
 	GraphicsEngine::get()->release();
-	InputSystem::get()->removeListener(this);
 }
 
 void AppWindow::onKeyDown(int key)
@@ -183,6 +200,24 @@ void AppWindow::onKeyDown(int key)
 		m_trans_x -= 1.0f * m_delta_time;
 	if (key == 'X')
 		m_trans_x += 1.0f * m_delta_time;
+
+	if (key == 'Q')
+		m_camera->Roll(1.0f * m_delta_time);
+	if (key == 'E')
+		m_camera->Roll(-1.0f * m_delta_time);
+
+
+	if (key == 'A')
+		m_camera->Translate(-3.0f * m_delta_time,m_camera->getRight());
+	if (key == 'D')
+		m_camera->Translate(3.0f * m_delta_time, m_camera->getRight());
+	if (key == 'S')
+		m_camera->Translate(-3.0f * m_delta_time, m_camera->getForward());
+	if (key == 'W')
+		m_camera->Translate(3.0f * m_delta_time, m_camera->getForward());
+
+	if (key == VK_ESCAPE)this->onDestroy();
+
 }
 
 void AppWindow::onKeyUp(int key)
@@ -190,29 +225,36 @@ void AppWindow::onKeyUp(int key)
 	
 }
 
-void AppWindow::onMouseMove(Point point)
+void AppWindow::onMouseMove(const Point& point)
 {
-	m_camera->Pitch(0.1f * point.m_y * m_delta_time);
-	m_camera->Yaw(0.1f * point.m_x * m_delta_time);
-	//m_camera->debugPrintState();
+	RECT rc = this->getClientWindowRect();
+
+	int width = rc.right - rc.left;
+	int height = rc.bottom - rc.top;
+
+	m_camera->Pitch(0.5f * (point.m_y-(height>>1)) * m_delta_time);
+	m_camera->Yaw(0.5f * (point.m_x-(width>>1)) * m_delta_time);
+
+	InputSystem::get()->setCursorPosition(Point(width>>1, height>>1));
+
 }
 
-void AppWindow::onLeftMouseDown(Point point)
+void AppWindow::onLeftMouseDown(const Point& point)
 {
 	
 }
 
-void AppWindow::onRightMouseDown(Point point)
+void AppWindow::onRightMouseDown(const Point& point)
 {
 	m_camera->debugPrintState();
 }
 
-void AppWindow::onLeftMouseUp(Point point)
+void AppWindow::onLeftMouseUp(const Point& point)
 {
 	
 }
 
-void AppWindow::onRightMouseUp(Point point)
+void AppWindow::onRightMouseUp(const Point& point)
 {
 	
 }
@@ -259,12 +301,11 @@ void AppWindow::updateQuadPosition()
 
 	//WORLD TO CAMERA TRANSFORM
 
-	temp = m_camera->getCameraTransform();
-	cc.m_view = temp;
+	cc.m_view = m_camera->getCameraTransform();
 	
 	//PERSPECTIVE TRANSFORM
-	temp = m_camera->getPerspectiveTransform();
-	cc.m_proj = temp;
+
+	cc.m_proj = m_camera->getPerspectiveTransform();
 
 	m_constant_buffer->update(GraphicsEngine::get()->getImmediateDeviceContext(), &cc);
 }

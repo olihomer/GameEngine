@@ -36,12 +36,12 @@ public:
 		m_mat[2][2] = scale.m_z;
 	}
 
-	void setRotX(float theta)
+	void setRotX(float psi)
 	{
-		m_mat[1][1] = cosf(theta);
-		m_mat[1][2] = sinf(theta);
-		m_mat[2][1] = -sinf(theta);
-		m_mat[2][2] = cosf(theta);
+		m_mat[1][1] = cosf(psi);
+		m_mat[1][2] = sinf(psi);
+		m_mat[2][1] = -sinf(psi);
+		m_mat[2][2] = cosf(psi);
 	}
 
 	void setRotY(float theta)
@@ -52,12 +52,12 @@ public:
 		m_mat[2][2] = cosf(theta);
 	}
 
-	void setRotZ(float theta)
+	void setRotZ(float phi)
 	{
-		m_mat[0][0] = cosf(theta);
-		m_mat[0][1] = sinf(theta);
-		m_mat[1][0] = -sinf(theta);
-		m_mat[1][1] = cosf(theta);
+		m_mat[0][0] = cosf(phi);
+		m_mat[0][1] = sinf(phi);
+		m_mat[1][0] = -sinf(phi);
+		m_mat[1][1] = cosf(phi);
 	}
 
 	void setMatrix(Matrix4x4 matrix)

@@ -25,11 +25,11 @@ public:
 
 	virtual void onKeyDown(int key) override;
 	virtual void onKeyUp(int key) override;
-	virtual void onMouseMove(Point point) override;
-	virtual void onLeftMouseDown(Point point) override;
-	virtual void onRightMouseDown(Point point) override;
-	virtual void onLeftMouseUp(Point point) override;
-	virtual void onRightMouseUp(Point point) override;
+	virtual void onMouseMove(const Point& point) override;
+	virtual void onLeftMouseDown(const Point& point) override;
+	virtual void onRightMouseDown(const Point& point) override;
+	virtual void onLeftMouseUp(const Point& point) override;
+	virtual void onRightMouseUp(const Point& point) override;
 	virtual void onFocus() override;
 	virtual void onKillFocus() override;
 
@@ -44,8 +44,8 @@ private:
 	ConstantBuffer* m_constant_buffer;
 	IndexBuffer* m_index_buffer;
 	Camera *m_camera;
-	float m_old_delta;
-	float m_new_delta;
+	INT64 m_old_delta;
+	INT64 m_new_delta;
 	float m_delta_time;
 	float m_delta_pos;
 	float m_delta_scale;

@@ -24,7 +24,7 @@ public:
 
 	~Window();
 protected:
-	HWND m_hwnd;
-	bool m_is_run;
+	HWND m_hwnd=0;
+	bool m_is_run=false;
 };
 

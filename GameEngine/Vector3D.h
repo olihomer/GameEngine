@@ -1,5 +1,8 @@
 #pragma once
 #include <math.h>
+#include <iostream>
+
+using namespace std;
 
 class Vector3D {
 public:
@@ -30,6 +33,12 @@ public:
 		diff.m_y = m_y - vector.m_y; 
 		diff.m_z = m_z - vector.m_z;
 		return diff;
+	}
+
+	friend ostream& operator<< (ostream& os, const Vector3D& vector)
+	{
+		os <<"(" << vector.m_x << "," << vector.m_y << "," << vector.m_z << ")";
+		return os;
 	}
 
 	static Vector3D lerp(const Vector3D& start, const Vector3D& end, float delta)

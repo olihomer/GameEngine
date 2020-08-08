@@ -16,6 +16,7 @@ public:
 	void Roll(float theta);
 	void Yaw(float theta);
 	void Pitch(float theta);
+	void Translate(float delta, Vector3D direction);
 	void debugPrintState();
 
 	Matrix4x4 getPerspectiveTransform();

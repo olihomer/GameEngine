@@ -1,6 +1,9 @@
 #include "Camera.h"
 #include <Windows.h>
+#include <iostream>
 
+using namespace std;
+constexpr float TWO_PI = 6.28318530718f;
 
 void Camera::setPosition(Vector3D pos)
 {
@@ -14,12 +17,21 @@ void Camera::setAspect(float aspect)
 
 void Camera::lookAt(Vector3D target, Vector3D up)
 {
-	Vector3D camera_z = (target - this->getPosition());
+	m_camera_local_matrix.setIdentity();
+
+	//SET AXES
+
+	Vector3D camera_z = (target - m_position);
 	camera_z.normalize();
 	Vector3D camera_y = up;
 	camera_y.normalize();
 	Vector3D camera_x;
 	camera_x.cross(camera_y, camera_z);
+	camera_x.normalize();
+	camera_y.cross(camera_z, camera_x);
+	camera_y.normalize();
+
+	//COPY TO STATE MATRIX
 
 	m_camera_local_matrix.m_mat[0][0] = camera_x.m_x;
 	m_camera_local_matrix.m_mat[0][1] = camera_x.m_y;
@@ -33,96 +45,85 @@ void Camera::lookAt(Vector3D target, Vector3D up)
 	m_camera_local_matrix.m_mat[2][1] = camera_z.m_y;
 	m_camera_local_matrix.m_mat[2][2] = camera_z.m_z;
 
-	m_pitch = atanf(camera_z.m_y / camera_z.m_z); //PITCH ZERO => FORWARD = +VE Z WORLD AXIS. +VE PITCH = UPWARDS
-	m_roll = atanf(camera_y.m_x / camera_y.m_y); //ROLL ZERO => UP = +VE Y AXIS. +VE ROLL = CLOCKWISE
-	m_yaw = atanf(camera_z.m_x / camera_z.m_z); //YAW ZERO => FORWARD = +VE Z WORLD AXIS. +VE YAW = RIGHTWARDS
+	//m_pitch = atanf(camera_z.m_y / camera_z.m_z); //PITCH ZERO => FORWARD = +VE Z WORLD AXIS. +VE PITCH = DOWNWARDS
+	//m_roll = atanf(camera_y.m_x / camera_y.m_y); //ROLL ZERO => UP = +VE Y AXIS. +VE ROLL = ANTCLOCKWISE
+	//m_yaw = atanf(camera_z.m_x / camera_z.m_z); //YAW ZERO => FORWARD = +VE Z WORLD AXIS. +VE YAW = RIGHTWARDS
+
+	//GET EULER ANGLES
+
+	float theta, psi, phi;
+
+	if (camera_z.m_y != 1 && camera_z.m_y != -1)
+	{
+		psi = -asinf(camera_z.m_y);
+		theta = atan2f(camera_z.m_x / cosf(psi), camera_z.m_z / cosf(psi));
+		phi = atan2f(camera_x.m_y / cosf(psi), camera_y.m_y / cosf(psi));
+	}
+	else
+	{
+		phi = 0;
+		if (camera_z.m_y = -1)
+		{
+			psi = TWO_PI / 4;
+			theta = phi + atan2(camera_y.m_x, camera_x.m_x);
+		}
+		else
+		{
+			psi = -TWO_PI / 4;
+			theta = -phi - atan2(camera_y.m_x, camera_x.m_x);
+		}
+
+	}
+
+	m_pitch = psi;
+	m_yaw = theta;
+	m_roll = phi;
+
+	if (m_pitch != m_pitch)m_pitch = 0;
+	if (m_yaw != m_yaw)m_yaw = 0;
+	if (m_roll != m_roll)m_roll = 0;
 
 }
 
 
 void Camera::Pitch(float theta)
 {
-	Vector3D camera_x, camera_y, camera_z;
-
 	m_pitch += theta;
-	
-	camera_x = getRight();
-	camera_z.m_x = sinf(m_yaw);
-	camera_z.m_y = sinf(m_pitch);
-	camera_z.m_z = cosf(m_pitch);
-	camera_x.normalize();
-	camera_z.normalize();
-	camera_y.cross(camera_z, camera_x);
-	camera_y.normalize();
+	if (m_pitch > TWO_PI)m_pitch -= TWO_PI;
+	if (m_pitch < -TWO_PI)m_pitch += TWO_PI;
+}
 
-	m_camera_local_matrix.m_mat[0][0] = camera_x.m_x;
-	m_camera_local_matrix.m_mat[0][1] = camera_x.m_y;
-	m_camera_local_matrix.m_mat[0][2] = camera_x.m_z;
+void Camera::Translate(float delta, Vector3D direction)
+{
+	m_position.m_x += delta * direction.m_x;
+	m_position.m_y += delta * direction.m_y;
+	m_position.m_z += delta * direction.m_z;
 
-	m_camera_local_matrix.m_mat[1][0] = camera_y.m_x;
-	m_camera_local_matrix.m_mat[1][1] = camera_y.m_y;
-	m_camera_local_matrix.m_mat[1][2] = camera_y.m_z;
-
-	m_camera_local_matrix.m_mat[2][0] = camera_z.m_x;
-	m_camera_local_matrix.m_mat[2][1] = camera_z.m_y;
-	m_camera_local_matrix.m_mat[2][2] = camera_z.m_z;
-	
 }
 
 void Camera::Yaw(float theta)
 {
-	Vector3D camera_x, camera_y, camera_z;
-
 	m_yaw += theta;
-
-	camera_y = getUp();
-	camera_z.m_x = sinf(m_yaw);
-	camera_z.m_y = sinf(m_pitch);
-	camera_z.m_z = cosf(m_yaw);
-	camera_y.normalize();
-	camera_z.normalize();
-	camera_x.cross(camera_y, camera_z);
-	camera_x.normalize();
-
-	m_camera_local_matrix.m_mat[0][0] = camera_x.m_x;
-	m_camera_local_matrix.m_mat[0][1] = camera_x.m_y;
-	m_camera_local_matrix.m_mat[0][2] = camera_x.m_z;
-
-	m_camera_local_matrix.m_mat[1][0] = camera_y.m_x;
-	m_camera_local_matrix.m_mat[1][1] = camera_y.m_y;
-	m_camera_local_matrix.m_mat[1][2] = camera_y.m_z;
-
-	m_camera_local_matrix.m_mat[2][0] = camera_z.m_x;
-	m_camera_local_matrix.m_mat[2][1] = camera_z.m_y;
-	m_camera_local_matrix.m_mat[2][2] = camera_z.m_z;
-
-	float a = camera_x.magnitude();
-	float b = camera_y.magnitude();
-	float c = camera_z.magnitude();
-	char debug[200];
-	sprintf_s(debug, "%f %f %f\n", a, b, c);
-	OutputDebugString(debug);
-
-
+	if (m_yaw > TWO_PI)m_yaw -= TWO_PI;
+	if (m_yaw < -TWO_PI)m_yaw += TWO_PI;
 }
 
 void Camera::Roll(float theta)
 {
-	//Matrix4x4 temp;
-	//temp.setIdentity();
-	//temp.setRotZ(theta);
-	//m_camera_local_matrix *= temp;
+	m_roll += theta;
+	if (m_roll > TWO_PI)m_roll -= TWO_PI;
+	if (m_roll < -TWO_PI)m_roll += TWO_PI;
 }
 
 void Camera::debugPrintState()
 {
-	//m_camera_local_matrix.debugPrint("Camera Local Matrix");
 	Matrix4x4 temp;
 	temp = m_camera_local_matrix;
 	temp.setTranslation(m_position);
 	temp.debugPrint("Camera World Matrix");
+	
 	char debug[200];
-	sprintf_s(debug, "Pitch: %f, Roll: %f, Yaw %f\n", m_pitch / DEG_RAD, m_roll / DEG_RAD, m_yaw / DEG_RAD);
+	sprintf_s(debug, "Pitch: %f, Roll: %f, Yaw %f\nMagUp: %f, MagRight %f, MagForward %f\n", m_pitch / DEG_RAD, m_roll / DEG_RAD, m_yaw / DEG_RAD,this->getUp().magnitude(),  this->getRight().magnitude(), this->getForward().magnitude());
 	OutputDebugString(debug);
 }
 
@@ -144,15 +145,31 @@ Matrix4x4 Camera::getPerspectiveTransform()
 
 Matrix4x4 Camera::getCameraTransform()
 {
-	Matrix4x4 temp;
-	temp = m_camera_local_matrix;
-	temp.setTranslation(m_position);
-
-	temp.invert();
+	Matrix4x4 cam,temp;
+	cam.setIdentity(); //CORRESPONDS TO CAMERA LOOKING +VE Z, UP = +VE Y, RIGHT = +VE X
 	
-	//temp.debugPrint("Created Inverse Matrix:");
+	temp.setRotX(m_pitch); //APPLY PITCH
+	cam *= temp;
+
+	temp.setIdentity();
+	temp.setRotY(m_yaw); //APPLY YAW
+	cam *= temp;
+
+	temp.setIdentity();
+	temp.setRotZ(m_roll); //APPLY ROLL
+	temp *= cam;
+
+	cam = temp;
+
+	m_camera_local_matrix = cam;
+
+	cam.setTranslation(m_position);
+	cam.invert();
 		
-	return temp;
+	//cout << "Pitch: "<< m_pitch << " Roll: " << m_roll << " Yaw: "<< m_yaw << endl;
+	//cout << "Forward: " << this->getForward() << "Up: " << this->getUp() << " Right: " << this->getRight()<<endl;
+
+	return cam;
 	
 }
 
@@ -181,37 +198,16 @@ Camera::Camera(Vector3D position, Vector3D lookat, Vector3D up, float aspect_rat
 	Matrix4x4 temp;
 
 	m_position = position;
-	m_camera_local_matrix.setIdentity();
+
+	this->lookAt(lookat, up);
 		
-	Vector3D camera_z = (lookat - position);
-	camera_z.normalize();
-	Vector3D camera_y = up;
-	camera_y.normalize();
-	Vector3D camera_x;
-	camera_x.cross(camera_y, camera_z);
-
-	m_camera_local_matrix.m_mat[0][0] = camera_x.m_x;
-	m_camera_local_matrix.m_mat[0][1] = camera_x.m_y;
-	m_camera_local_matrix.m_mat[0][2] = camera_x.m_z;
-
-	m_camera_local_matrix.m_mat[1][0] = camera_y.m_x;
-	m_camera_local_matrix.m_mat[1][1] = camera_y.m_y;
-	m_camera_local_matrix.m_mat[1][2] = camera_y.m_z;
-
-	m_camera_local_matrix.m_mat[2][0] = camera_z.m_x;
-	m_camera_local_matrix.m_mat[2][1] = camera_z.m_y;
-	m_camera_local_matrix.m_mat[2][2] = camera_z.m_z;
-
-	m_pitch = atanf(camera_z.m_y / camera_z.m_z); //PITCH ZERO => FORWARD = +VE Z WORLD AXIS. +VE PITCH = UPWARDS
-	m_roll = atanf(camera_y.m_x / camera_y.m_y); //ROLL ZERO => UP = +VE Y AXIS. +VE ROLL = CLOCKWISE
-	m_yaw = atanf(camera_z.m_x / camera_z.m_z); //YAW ZERO => FORWARD = +VE Z WORLD AXIS. +VE YAW = RIGHTWARDS
-
 	m_aspect = aspect_ratio;
 	m_near_plane = near_plane;
 	m_far_plane = far_plane;
 	m_fov = fov;
 
 	this->debugPrintState();
+
 
 }
 
