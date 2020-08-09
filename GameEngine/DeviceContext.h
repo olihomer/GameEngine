@@ -9,6 +9,7 @@ class DeviceContext
 {
 public:
 	DeviceContext(ID3D11DeviceContext* device_context, RenderSystem* system);
+	~DeviceContext();
 	void clearRenderTargetColor(SwapChain* swap_chain, float red, float green, float blue, float alpha);
 	void setVertexBuffer(VertexBuffer* vertex_buffer);
 	void setIndexBuffer(IndexBuffer* index_buffer);
@@ -20,7 +21,6 @@ public:
 	void setViewportSize(UINT width, UINT height);
 	void setVertexShader(VertexShader* vertex_shader);
 	void setPixelShader(PixelShader* pixel_shader);
-	bool release();
 	ID3D11DeviceContext* m_device_context;
 	RenderSystem* m_system = nullptr;
 };

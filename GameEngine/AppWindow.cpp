@@ -47,16 +47,12 @@ void AppWindow::onCreate()
 
 	//INIT SWAP CHAIN
 
-	m_swap_chain = GraphicsEngine::get()->getRenderSystem()->createSwapChain();
+	m_swap_chain = GraphicsEngine::get()->getRenderSystem()->createSwapChain(this->m_hwnd, width, height);
 
 	if (this->m_hwnd == nullptr)OutputDebugString("Warning: m_hwnd is null\n");
-	m_swap_chain->init(this->m_hwnd, width, height);
 
 	// PREPARE VERTEX BUFFER, INDEX BUFFER, VERTEX DATA AND VERTEX SHADER
-
-	m_vertex_buffer = GraphicsEngine::get()->getRenderSystem()->createVertexBuffer();
-	m_index_buffer = GraphicsEngine::get()->getRenderSystem()->createIndexBuffer();
-
+	
 	vertex vertex_list[] =
 	{
 		{Vector3D(-0.5F, -0.5F, -0.5F), Vector3D(1,0,0)},
@@ -68,8 +64,7 @@ void AppWindow::onCreate()
 		{Vector3D(-0.5F,0.5F,  0.5F) , Vector3D(1, 0.5, 1)},
 		{Vector3D(-0.5F,-0.5F,  0.5F) , Vector3D(0.5, 1, 1)}
 	};
-
-	
+		
 	UINT index_list[] =
 	{
 		0,1,2,
@@ -90,7 +85,6 @@ void AppWindow::onCreate()
 	size_t size_shader = 0;
 
 	GraphicsEngine::get()->getRenderSystem()->compileVertexShader(L"VertexShader.hlsl", "main", &shader_byte_code, &size_shader);
-
 	m_vertex_shader = GraphicsEngine::get()->getRenderSystem()->createVertexShader(shader_byte_code, size_shader);
 	
 	UINT size_list = ARRAYSIZE(vertex_list);
@@ -98,12 +92,12 @@ void AppWindow::onCreate()
 
 	//LOAD VERTEX BUFFER
 
-	m_vertex_buffer->load(vertex_list, size_vertex, size_list, shader_byte_code, (UINT)size_shader);
+	m_vertex_buffer = GraphicsEngine::get()->getRenderSystem()->createVertexBuffer(vertex_list, size_vertex, size_list, shader_byte_code, (UINT)size_shader);
 
 	//LOAD INDEX BUFFER
 
 	size_list = ARRAYSIZE(index_list);
-	m_index_buffer->load(index_list, size_list);
+	m_index_buffer = GraphicsEngine::get()->getRenderSystem()->createIndexBuffer(index_list, size_list);
 	
 	GraphicsEngine::get()->getRenderSystem()->releaseCompiledShader();
 		
@@ -120,14 +114,13 @@ void AppWindow::onCreate()
 	constant cc;
 	cc.m_time = 0;
 
-	m_constant_buffer = GraphicsEngine::get()->getRenderSystem()->createConstantBuffer();
-	m_constant_buffer->load(&cc, sizeof(constant));
-
+	m_constant_buffer = GraphicsEngine::get()->getRenderSystem()->createConstantBuffer(&cc, sizeof(constant));
+	
 	// CREATE CAMERA
 
-	Vector3D pos = Vector3D(4, 4, 0);
+	Vector3D pos = Vector3D(0, 0, -4);
 	Vector3D lookat = Vector3D(0, 0, 0);
-	Vector3D up= Vector3D(-1, 1, 1);
+	Vector3D up= Vector3D(0, 1, 0);
 	m_camera = new Camera(pos,lookat,up, 1.0f, 0.1f, 100.0f, 90);
 	
 }
@@ -185,12 +178,6 @@ void AppWindow::onDestroy()
 {
 	InputSystem::get()->showCursor();
 	Window::onDestroy();
-	m_swap_chain->release();
-	m_vertex_buffer->release();
-	m_pixel_shader->release();
-	m_vertex_shader->release();
-	m_constant_buffer->release();
-	m_index_buffer->release();
 	delete m_camera;
 	GraphicsEngine::get()->release();
 }

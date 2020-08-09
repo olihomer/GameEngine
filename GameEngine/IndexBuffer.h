@@ -6,9 +6,8 @@
 class IndexBuffer
 {
 public:
-	IndexBuffer(RenderSystem* system);
-	bool load(void* list_indexes, UINT size_list);
-	bool release();
+	IndexBuffer(void* list_indexes, UINT size_list, RenderSystem* system);
+	~IndexBuffer();
 	UINT getSizeIndexList();
 private:
 	ID3D11Buffer* m_index_buffer;

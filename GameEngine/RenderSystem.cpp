@@ -6,12 +6,111 @@
 #include "PixelShader.h"
 #include "ConstantBuffer.h"
 #include "IndexBuffer.h"
+#include <exception>
 
 
-
-bool RenderSystem::init()
+RenderSystem* RenderSystem::get()
 {
-	OutputDebugString("Entering RenderSystem::init\n");
+	static RenderSystem system;
+	return &system;
+}
+
+SwapChain* RenderSystem::createSwapChain(HWND window, UINT width, UINT height)
+{
+	SwapChain* sc = nullptr;
+	try {
+		sc= new SwapChain(window, width, height, this);
+	}
+	catch (...)
+	{
+
+	}
+	return sc;
+}
+
+VertexBuffer* RenderSystem::createVertexBuffer(void* list_vertices, UINT size_vertex, UINT size_list, void* shader_byte_code, UINT size_byte_shader)
+{
+	VertexBuffer* vb = nullptr;
+	try
+	{
+		vb= new VertexBuffer(list_vertices, size_vertex, size_list, shader_byte_code, size_byte_shader, this);
+	}
+	catch (...)
+	{
+
+	}
+	return vb;
+}
+
+ConstantBuffer* RenderSystem::createConstantBuffer(void* buffer, UINT size)
+{
+	ConstantBuffer* cb=nullptr;
+	try
+	{
+		cb = new ConstantBuffer(buffer, size, this);
+	}
+	catch (...)
+	{
+
+	}
+	return cb;
+}
+
+IndexBuffer* RenderSystem::createIndexBuffer(void* list_indexes, UINT size_list)
+{
+	IndexBuffer* ib=nullptr;
+	try
+	{
+		ib = new IndexBuffer(list_indexes, size_list, this);
+	}
+	catch (...)
+	{
+
+	}
+	return ib;
+}
+
+VertexShader* RenderSystem::createVertexShader(const void* shader_byte_code, size_t size_byte_code)
+{
+
+	OutputDebugString("RenderSystem::createVertexShader\n");
+
+	VertexShader* vs=nullptr;
+
+	try
+	{
+		vs = new VertexShader(shader_byte_code, size_byte_code, this);
+	}
+	catch(...)
+	{
+		OutputDebugString("Failed to Init Vertex Shader\n");
+	}
+	return vs;
+}
+
+PixelShader* RenderSystem::createPixelShader(const void* shader_byte_code, size_t size_byte_code)
+{
+	OutputDebugString("RenderSystem::createPixelShader\n");
+	PixelShader* ps = nullptr;
+	try
+	{
+		ps = new PixelShader(shader_byte_code, size_byte_code, this);
+	}
+	catch(...)
+	{
+		OutputDebugString("Failed to Init Pixel Shader\n");
+	}
+	return ps;
+}
+
+DeviceContext* RenderSystem::getImmediateDeviceContext()
+{
+	return this->m_imm_device_context;
+}
+
+RenderSystem::RenderSystem()
+{
+	OutputDebugString("Entering RenderSystem()\n");
 
 	D3D_DRIVER_TYPE driver_types[] =
 	{
@@ -43,8 +142,7 @@ bool RenderSystem::init()
 
 	if (FAILED(hr))
 	{
-		OutputDebugString("Failed to Create D3D Device\n");
-		return false;
+		throw std::exception("Failed to Create D3D Device");
 	}
 
 	m_d3d_device->QueryInterface(__uuidof(IDXGIDevice), (void**)&m_dxgi_device);
@@ -53,89 +151,18 @@ bool RenderSystem::init()
 
 	OutputDebugString("D3D Device Created Ok\n");
 
-	m_imm_device_context = new DeviceContext(imm_device_context,this);
+	m_imm_device_context = new DeviceContext(imm_device_context, this);
 
-	return true;
-}
-
-bool RenderSystem::release()
-{
-	OutputDebugString("CLEANUP RenderSystem::release\n");
-	m_d3d_device->Release();
-	m_dxgi_device->Release();
-	m_dxgi_factory->Release();
-	m_dxgi_adapter->Release();
-	m_imm_device_context->release();
-
-	return true;
-}
-
-RenderSystem* RenderSystem::get()
-{
-	static RenderSystem system;
-	return &system;
-}
-
-SwapChain* RenderSystem::createSwapChain()
-{
-	return new SwapChain(this);
-}
-
-VertexBuffer* RenderSystem::createVertexBuffer()
-{
-	return new VertexBuffer(this);
-}
-
-ConstantBuffer* RenderSystem::createConstantBuffer()
-{
-	return new ConstantBuffer(this);
-}
-
-IndexBuffer* RenderSystem::createIndexBuffer()
-{
-	return new IndexBuffer(this);
-}
-
-VertexShader* RenderSystem::createVertexShader(const void* shader_byte_code, size_t size_byte_code)
-{
-
-	OutputDebugString("RenderSystem::createVertexShader\n");
-
-	VertexShader* vs = new VertexShader(this);
-	if (!vs->init(shader_byte_code, size_byte_code))
-	{
-		OutputDebugString("Failed to Init Vertex Shader\n");
-		return nullptr;
-	}
-	return vs;
-}
-
-PixelShader* RenderSystem::createPixelShader(const void* shader_byte_code, size_t size_byte_code)
-{
-	OutputDebugString("RenderSystem::createPixelShader\n");
-
-	PixelShader* ps = new PixelShader(this);
-	if (!ps->init(shader_byte_code, size_byte_code))
-	{
-		OutputDebugString("Failed to Init Pixel Shader\n");
-		return nullptr;
-	}
-	return ps;
-}
-
-DeviceContext* RenderSystem::getImmediateDeviceContext()
-{
-	return this->m_imm_device_context;
-}
-
-RenderSystem::RenderSystem()
-{
-	this->init();
 }
 
 RenderSystem::~RenderSystem()
 {
-	this->release();
+	OutputDebugString("CLEANUP RenderSystem destructor\n");
+	m_d3d_device->Release();
+	m_dxgi_device->Release();
+	m_dxgi_factory->Release();
+	m_dxgi_adapter->Release();
+	delete m_imm_device_context;
 }
 
 
@@ -146,8 +173,7 @@ bool RenderSystem::compileVertexShader(const wchar_t* file_name, const char* ent
 	HRESULT hr = D3DCompileFromFile(file_name, nullptr, nullptr, entry_point_name, "vs_5_0", 0, 0, &m_blob, nullptr);
 	if (FAILED(hr))
 	{
-		OutputDebugString("Failed to D3DCompileFromFile in compileVertexShader\n");
-		return false;
+		throw std::exception("Failed to D3DCompileFromFile in compileVertexShader\n");
 	}
 
 	*shader_byte_code = m_blob->GetBufferPointer();
@@ -164,8 +190,7 @@ bool RenderSystem::compilePixelShader(const wchar_t* file_name, const char* entr
 	HRESULT hr = D3DCompileFromFile(file_name, nullptr, nullptr, entry_point_name, "ps_5_0", 0, 0, &m_blob, nullptr);
 	if (FAILED(hr))
 	{
-		OutputDebugString("Failed to D3DCompileFromFile in compilePixelShader\n");
-		return false;
+		throw std::exception("Failed to D3DCompileFromFile in compilePixelShader\n");
 	}
 
 	*shader_byte_code = m_blob->GetBufferPointer();

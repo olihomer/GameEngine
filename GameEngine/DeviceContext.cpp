@@ -11,6 +11,13 @@ DeviceContext::DeviceContext(ID3D11DeviceContext* device_context, RenderSystem* 
 	m_device_context = device_context;
 }
 
+DeviceContext::~DeviceContext()
+{
+	OutputDebugString("CLEANUP DeviceContext Destructor\n");
+	m_device_context->Release();
+
+}
+
 void DeviceContext::clearRenderTargetColor(SwapChain* swap_chain,float red, float green, float blue, float alpha)
 {
 	FLOAT clear_color[] = { red,green,blue,alpha};
@@ -87,10 +94,4 @@ void DeviceContext::setPixelShader(PixelShader* pixel_shader)
 }
 
 
-bool DeviceContext::release()
-{
-	OutputDebugString("CLEANUP DeviceContext::release\n");
-	m_device_context->Release();
-	delete this;
-	return true;
-}
+

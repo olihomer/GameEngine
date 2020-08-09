@@ -1,22 +1,19 @@
 #include "IndexBuffer.h"
 #include "RenderSystem.h"
+#include <exception>
 
-
-IndexBuffer::IndexBuffer(RenderSystem* system)
+IndexBuffer::IndexBuffer(void* list_indexes, UINT size_list,RenderSystem* system)
 {
+	OutputDebugString("Entering IndexBuffer()\n");
+
 	m_system = system;
-}
-
-bool IndexBuffer::load(void* list_indexes,UINT size_list)
-{
-	OutputDebugString("Entering IndexBuffer::load\n");
 
 	if (m_index_buffer)m_index_buffer->Release();
 
 	D3D11_BUFFER_DESC desc = {};
 	D3D11_SUBRESOURCE_DATA data = {};
 
-	desc.ByteWidth = size_list*sizeof(UINT);
+	desc.ByteWidth = size_list * sizeof(UINT);
 	desc.Usage = D3D11_USAGE_DEFAULT;
 	desc.BindFlags = D3D11_BIND_INDEX_BUFFER;
 	desc.CPUAccessFlags = 0;
@@ -26,26 +23,22 @@ bool IndexBuffer::load(void* list_indexes,UINT size_list)
 	data.pSysMem = list_indexes;
 
 	m_size_list = size_list;
-	
+
 	HRESULT hr = m_system->m_d3d_device->CreateBuffer(&desc, &data, &m_index_buffer);
 
 	if (FAILED(hr))
 	{
-		OutputDebugString("Failed to CreateBuffer\n");
-		return false;
+		throw std::exception("Failed to CreateBuffer");
 	}
 
 	OutputDebugString("Index Buffer created ok\n");
 
-	return true;
 }
 
-bool IndexBuffer::release()
+IndexBuffer::~IndexBuffer()
 {
 	OutputDebugString("CLEANUP IndexBuffer::release\n");
 	if (m_index_buffer)m_index_buffer->Release();
-	delete this;
-	return true;
 }
 
 UINT IndexBuffer::getSizeIndexList()

@@ -10,10 +10,10 @@ public:
 	bool init();
 	bool release();
 	static RenderSystem* get();
-	SwapChain* createSwapChain();
-	VertexBuffer* createVertexBuffer();
-	ConstantBuffer* createConstantBuffer();
-	IndexBuffer* createIndexBuffer();
+	SwapChain* createSwapChain(HWND window, UINT width, UINT height);
+	VertexBuffer* createVertexBuffer(void* list_vertices, UINT size_vertex, UINT size_list, void* shader_byte_code, UINT size_byte_shader);
+	ConstantBuffer* createConstantBuffer(void* buffer, UINT size);
+	IndexBuffer* createIndexBuffer(void* list_indexes, UINT size_list);
 	VertexShader* createVertexShader(const void* shader_byte_code, size_t size_byte_code);
 	PixelShader* createPixelShader(const void* shader_byte_code, size_t size_byte_code);
 	DeviceContext* getImmediateDeviceContext();
