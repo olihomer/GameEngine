@@ -7,8 +7,6 @@
 class InputSystem
 {
 public:
-	InputSystem() {};
-	~InputSystem() {};
 	static InputSystem* get();
 
 	void update();
@@ -17,9 +15,14 @@ public:
 	void setCursorPosition(const Point& point);
 	void showCursor();
 	void hideCursor();
-
 	void debugCount();
+	static void create();
+	static void release();
+
 private:
+	InputSystem() {};
+	~InputSystem();
+	static InputSystem* m_system;
 	std::unordered_set<InputListener*> m_set_listeners;
 	unsigned char m_keys_state[256] = {};
 	unsigned char m_old_keys_state[256] = {};

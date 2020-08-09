@@ -5,13 +5,14 @@
 class GraphicsEngine
 {
 public:
-	bool init();
-	bool release();
 	static GraphicsEngine* get();
-	GraphicsEngine();
-	~GraphicsEngine();
 	RenderSystem* getRenderSystem();
+	static void create();
+	static void release();
 private:
 	RenderSystem* m_render_system = nullptr;
+	GraphicsEngine();
+	~GraphicsEngine();
+	static GraphicsEngine* m_engine;
 };
 

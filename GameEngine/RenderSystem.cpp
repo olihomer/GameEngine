@@ -137,7 +137,6 @@ RenderSystem::RenderSystem()
 			break;
 
 		++driver_type_index;
-
 	}
 
 	if (FAILED(hr))

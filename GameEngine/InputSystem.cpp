@@ -1,12 +1,10 @@
 #include "InputSystem.h"
 #include <Windows.h>
 #include "Point.h"
+#include <exception>
 
-InputSystem* InputSystem::get()
-{
-	static InputSystem system;
-	return &system;
-}
+InputSystem* InputSystem::m_system = nullptr;
+
 
 void InputSystem::update()
 {
@@ -150,4 +148,27 @@ void InputSystem::debugCount()
 	char debug[200];
 	sprintf_s(debug, "Listeners = %d\n", (int)m_set_listeners.size());
 	OutputDebugString(debug);
+}
+
+void InputSystem::create()
+{
+	if (InputSystem::m_system)throw std::exception("Input System already exists");
+	InputSystem::m_system = new InputSystem;
+}
+
+void InputSystem::release()
+{
+	if (!InputSystem::m_system)return;
+	delete InputSystem::m_system;
+}
+
+InputSystem* InputSystem::get()
+{
+	return m_system;
+}
+
+InputSystem::~InputSystem()
+{
+	OutputDebugString("CLEANUP InputSystem Destructor\n");
+	InputSystem::m_system = nullptr;
 }

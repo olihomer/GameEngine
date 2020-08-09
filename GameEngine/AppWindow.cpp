@@ -37,7 +37,7 @@ void AppWindow::onCreate()
 	int width = rc.right - rc.left;
 	int height = rc.bottom - rc.top;
 
-	GraphicsEngine::get()->init();
+	GraphicsEngine::get();
 		
 	// INIT INPUT SYSTEM
 
@@ -179,7 +179,6 @@ void AppWindow::onDestroy()
 	InputSystem::get()->showCursor();
 	Window::onDestroy();
 	delete m_camera;
-	GraphicsEngine::get()->release();
 }
 
 void AppWindow::onKeyDown(int key)

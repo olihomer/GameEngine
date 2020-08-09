@@ -1,10 +1,16 @@
 #include "AppWindow.h"
-
-
+#include "GraphicsEngine.h"
+#include "InputSystem.h"
 
 int main()
 {
-	OutputDebugString("Entering Main\n");
+	try
+	{
+		GraphicsEngine::create();
+		InputSystem::create();
+	}
+	catch (...) { return -1; }
+	
 	AppWindow app;
 
 	if (app.init())
@@ -17,6 +23,9 @@ int main()
 			app.broadcast();
 		}
 	}
+
+	GraphicsEngine::release();
+	InputSystem::release();
 
 	return 0;
 }
