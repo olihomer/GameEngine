@@ -15,10 +15,7 @@ int main()
 	{
 		AppWindow app;
 		OutputDebugString("Entering Main Loop\n");
-		while (app.isRun())
-		{
-			app.broadcast();
-		}
+		while (app.isRun());
 	}
 	catch (...)
 	{

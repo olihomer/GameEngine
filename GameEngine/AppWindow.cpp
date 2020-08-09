@@ -129,8 +129,8 @@ void AppWindow::onUpdate()
 {
 	Window::onUpdate();
 	InputSystem::get()->update();
-	
-	if (isRun()) {
+
+	if (m_is_run) {
 
 		//CLEAR RENDER TARGET, UPDATE VIEWPORT SIZE
 		GraphicsEngine::get()->getRenderSystem()->getImmediateDeviceContext()->clearRenderTargetColor(this->m_swap_chain, 0.5F, 0.1F, 0.8F, 1.0F);

@@ -106,7 +106,7 @@ void Window::broadcast()
 
 bool Window::isRun()
 {
-	//if (m_is_run)broadcast();
+	if (m_is_run)broadcast();
 	return m_is_run;
 }
 
