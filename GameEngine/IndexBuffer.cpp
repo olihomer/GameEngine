@@ -8,8 +8,6 @@ IndexBuffer::IndexBuffer(void* list_indexes, UINT size_list,RenderSystem* system
 
 	m_system = system;
 
-	if (m_index_buffer)m_index_buffer->Release();
-
 	D3D11_BUFFER_DESC desc = {};
 	D3D11_SUBRESOURCE_DATA data = {};
 

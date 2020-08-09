@@ -7,7 +7,7 @@ class ConstantBuffer
 public:
 	ConstantBuffer(void* buffer, UINT size,RenderSystem* system);
 	~ConstantBuffer();
-	void update(DeviceContext* dc, void* buffer);
+	void update(DeviceContextPtr dc, void* buffer);
 private:
 	ID3D11Buffer* m_constant_buffer;
 	friend class DeviceContext;

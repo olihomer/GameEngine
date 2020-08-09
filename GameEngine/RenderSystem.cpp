@@ -15,11 +15,11 @@ RenderSystem* RenderSystem::get()
 	return &system;
 }
 
-SwapChain* RenderSystem::createSwapChain(HWND window, UINT width, UINT height)
+SwapChainPtr RenderSystem::createSwapChain(HWND window, UINT width, UINT height)
 {
-	SwapChain* sc = nullptr;
+	SwapChainPtr sc = nullptr;
 	try {
-		sc= new SwapChain(window, width, height, this);
+		sc= std::make_shared<SwapChain>(window, width, height, this);
 	}
 	catch (...)
 	{
@@ -28,12 +28,12 @@ SwapChain* RenderSystem::createSwapChain(HWND window, UINT width, UINT height)
 	return sc;
 }
 
-VertexBuffer* RenderSystem::createVertexBuffer(void* list_vertices, UINT size_vertex, UINT size_list, void* shader_byte_code, UINT size_byte_shader)
+VertexBufferPtr RenderSystem::createVertexBuffer(void* list_vertices, UINT size_vertex, UINT size_list, void* shader_byte_code, UINT size_byte_shader)
 {
-	VertexBuffer* vb = nullptr;
+	VertexBufferPtr vb = nullptr;
 	try
 	{
-		vb= new VertexBuffer(list_vertices, size_vertex, size_list, shader_byte_code, size_byte_shader, this);
+		vb= std::make_shared<VertexBuffer>(list_vertices, size_vertex, size_list, shader_byte_code, size_byte_shader, this);
 	}
 	catch (...)
 	{
@@ -42,12 +42,12 @@ VertexBuffer* RenderSystem::createVertexBuffer(void* list_vertices, UINT size_ve
 	return vb;
 }
 
-ConstantBuffer* RenderSystem::createConstantBuffer(void* buffer, UINT size)
+ConstantBufferPtr RenderSystem::createConstantBuffer(void* buffer, UINT size)
 {
-	ConstantBuffer* cb=nullptr;
+	ConstantBufferPtr cb = nullptr;
 	try
 	{
-		cb = new ConstantBuffer(buffer, size, this);
+		cb = std::make_shared <ConstantBuffer>(buffer, size, this);
 	}
 	catch (...)
 	{
@@ -56,12 +56,12 @@ ConstantBuffer* RenderSystem::createConstantBuffer(void* buffer, UINT size)
 	return cb;
 }
 
-IndexBuffer* RenderSystem::createIndexBuffer(void* list_indexes, UINT size_list)
+IndexBufferPtr RenderSystem::createIndexBuffer(void* list_indexes, UINT size_list)
 {
-	IndexBuffer* ib=nullptr;
+	IndexBufferPtr ib = nullptr;
 	try
 	{
-		ib = new IndexBuffer(list_indexes, size_list, this);
+		ib = std::make_shared <IndexBuffer>(list_indexes, size_list, this);
 	}
 	catch (...)
 	{
@@ -70,16 +70,16 @@ IndexBuffer* RenderSystem::createIndexBuffer(void* list_indexes, UINT size_list)
 	return ib;
 }
 
-VertexShader* RenderSystem::createVertexShader(const void* shader_byte_code, size_t size_byte_code)
+VertexShaderPtr RenderSystem::createVertexShader(const void* shader_byte_code, size_t size_byte_code)
 {
 
 	OutputDebugString("RenderSystem::createVertexShader\n");
 
-	VertexShader* vs=nullptr;
+	VertexShaderPtr vs = nullptr;
 
 	try
 	{
-		vs = new VertexShader(shader_byte_code, size_byte_code, this);
+		vs = std::make_shared<VertexShader>(shader_byte_code, size_byte_code, this);
 	}
 	catch(...)
 	{
@@ -88,13 +88,13 @@ VertexShader* RenderSystem::createVertexShader(const void* shader_byte_code, siz
 	return vs;
 }
 
-PixelShader* RenderSystem::createPixelShader(const void* shader_byte_code, size_t size_byte_code)
+PixelShaderPtr RenderSystem::createPixelShader(const void* shader_byte_code, size_t size_byte_code)
 {
 	OutputDebugString("RenderSystem::createPixelShader\n");
-	PixelShader* ps = nullptr;
+	PixelShaderPtr ps = nullptr;
 	try
 	{
-		ps = new PixelShader(shader_byte_code, size_byte_code, this);
+		ps = std::make_shared<PixelShader>(shader_byte_code, size_byte_code, this);
 	}
 	catch(...)
 	{
@@ -103,7 +103,7 @@ PixelShader* RenderSystem::createPixelShader(const void* shader_byte_code, size_
 	return ps;
 }
 
-DeviceContext* RenderSystem::getImmediateDeviceContext()
+DeviceContextPtr RenderSystem::getImmediateDeviceContext()
 {
 	return this->m_imm_device_context;
 }
@@ -151,7 +151,7 @@ RenderSystem::RenderSystem()
 
 	OutputDebugString("D3D Device Created Ok\n");
 
-	m_imm_device_context = new DeviceContext(imm_device_context, this);
+	m_imm_device_context = std::make_shared<DeviceContext>(imm_device_context, this);
 
 }
 
@@ -162,7 +162,6 @@ RenderSystem::~RenderSystem()
 	m_dxgi_device->Release();
 	m_dxgi_factory->Release();
 	m_dxgi_adapter->Release();
-	delete m_imm_device_context;
 }
 
 

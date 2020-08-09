@@ -37,12 +37,12 @@ public:
 	void updateQuadPosition();
 
 private:
-	SwapChain* m_swap_chain;
-	VertexBuffer* m_vertex_buffer;
-	VertexShader* m_vertex_shader;
-	PixelShader* m_pixel_shader;
-	ConstantBuffer* m_constant_buffer;
-	IndexBuffer* m_index_buffer;
+	SwapChainPtr m_swap_chain;
+	VertexBufferPtr m_vertex_buffer;
+	VertexShaderPtr m_vertex_shader;
+	PixelShaderPtr m_pixel_shader;
+	ConstantBufferPtr m_constant_buffer;
+	IndexBufferPtr m_index_buffer;
 	Camera *m_camera;
 	INT64 m_old_delta;
 	INT64 m_new_delta;

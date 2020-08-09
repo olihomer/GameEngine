@@ -10,13 +10,13 @@ public:
 	bool init();
 	bool release();
 	static RenderSystem* get();
-	SwapChain* createSwapChain(HWND window, UINT width, UINT height);
-	VertexBuffer* createVertexBuffer(void* list_vertices, UINT size_vertex, UINT size_list, void* shader_byte_code, UINT size_byte_shader);
-	ConstantBuffer* createConstantBuffer(void* buffer, UINT size);
-	IndexBuffer* createIndexBuffer(void* list_indexes, UINT size_list);
-	VertexShader* createVertexShader(const void* shader_byte_code, size_t size_byte_code);
-	PixelShader* createPixelShader(const void* shader_byte_code, size_t size_byte_code);
-	DeviceContext* getImmediateDeviceContext();
+	SwapChainPtr createSwapChain(HWND window, UINT width, UINT height);
+	VertexBufferPtr createVertexBuffer(void* list_vertices, UINT size_vertex, UINT size_list, void* shader_byte_code, UINT size_byte_shader);
+	ConstantBufferPtr createConstantBuffer(void* buffer, UINT size);
+	IndexBufferPtr createIndexBuffer(void* list_indexes, UINT size_list);
+	VertexShaderPtr createVertexShader(const void* shader_byte_code, size_t size_byte_code);
+	PixelShaderPtr createPixelShader(const void* shader_byte_code, size_t size_byte_code);
+	DeviceContextPtr getImmediateDeviceContext();
 	RenderSystem();
 	~RenderSystem();
 
@@ -31,7 +31,7 @@ private:
 	IDXGIDevice* m_dxgi_device;
 	IDXGIAdapter* m_dxgi_adapter;
 	IDXGIFactory* m_dxgi_factory;
-	DeviceContext* m_imm_device_context;
+	DeviceContextPtr m_imm_device_context;
 	ID3DBlob* m_blob;
 
 	friend class SwapChain;

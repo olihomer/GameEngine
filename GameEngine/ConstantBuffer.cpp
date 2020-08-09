@@ -39,7 +39,7 @@ ConstantBuffer::~ConstantBuffer()
 
 }
 
-void ConstantBuffer::update(DeviceContext* dc, void* buffer)
+void ConstantBuffer::update(DeviceContextPtr dc, void* buffer)
 {
 	dc->m_device_context->UpdateSubresource(this->m_constant_buffer,NULL,NULL,buffer,NULL,NULL);
 }
