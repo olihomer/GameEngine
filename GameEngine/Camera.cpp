@@ -62,7 +62,7 @@ void Camera::lookAt(Vector3D target, Vector3D up)
 	else
 	{
 		phi = 0;
-		if (camera_z.m_y = -1)
+		if (camera_z.m_y == -1)
 		{
 			psi = TWO_PI / 4;
 			theta = phi + atan2(camera_y.m_x, camera_x.m_x);

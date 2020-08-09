@@ -1,0 +1,10 @@
+#pragma once
+class VertexBuffer;
+class VertexShader;
+class PixelShader;
+class SwapChain;
+class ConstantBuffer;
+class IndexBuffer;
+class DeviceContext;
+class GraphicsEngine;
+class RenderSystem;

@@ -1,18 +1,14 @@
+#pragma once
 #include <d3d11.h>
 #include "SwapChain.h"
-#pragma once
+#include "Prerequisites.h"
 
-class SwapChain;
-class VertexBuffer;
-class VertexShader;
-class PixelShader;
-class ConstantBuffer;
-class IndexBuffer;
+
 
 class DeviceContext
 {
 public:
-	DeviceContext(ID3D11DeviceContext* device_context);
+	DeviceContext(ID3D11DeviceContext* device_context, RenderSystem* system);
 	void clearRenderTargetColor(SwapChain* swap_chain, float red, float green, float blue, float alpha);
 	void setVertexBuffer(VertexBuffer* vertex_buffer);
 	void setIndexBuffer(IndexBuffer* index_buffer);
@@ -26,6 +22,6 @@ public:
 	void setPixelShader(PixelShader* pixel_shader);
 	bool release();
 	ID3D11DeviceContext* m_device_context;
-
+	RenderSystem* m_system = nullptr;
 };
 

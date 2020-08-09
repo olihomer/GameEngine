@@ -1,10 +1,6 @@
 #include "VertexBuffer.h"
-#include "GraphicsEngine.h"
+#include "RenderSystem.h"
 
-VertexBuffer::VertexBuffer() :m_input_layout(0), m_vertex_buffer(0)
-{
-
-}
 
 bool VertexBuffer::load(void* list_vertices, UINT size_vertex, UINT size_list, void* shader_byte_code, UINT size_byte_shader)
 {
@@ -28,7 +24,7 @@ bool VertexBuffer::load(void* list_vertices, UINT size_vertex, UINT size_list, v
 	m_size_list = size_list;
 	m_size_vertex = size_vertex;
 
-	HRESULT hr=GraphicsEngine::get()->m_d3d_device->CreateBuffer(&desc, &data, &m_vertex_buffer);
+	HRESULT hr= m_system->m_d3d_device->CreateBuffer(&desc, &data, &m_vertex_buffer);
 
 	if (FAILED(hr))	
 	{
@@ -51,7 +47,7 @@ bool VertexBuffer::load(void* list_vertices, UINT size_vertex, UINT size_list, v
 
 	UINT size_layout = ARRAYSIZE(layout);
 
-	hr = GraphicsEngine::get()->m_d3d_device->CreateInputLayout(layout,size_layout,shader_byte_code,size_byte_shader, &m_input_layout);
+	hr = m_system->m_d3d_device->CreateInputLayout(layout,size_layout,shader_byte_code,size_byte_shader, &m_input_layout);
 
 	if (FAILED(hr))
 	{
@@ -76,4 +72,9 @@ bool VertexBuffer::release()
 UINT VertexBuffer::getSizeVertexList()
 {
 	return m_size_list;
+}
+
+VertexBuffer::VertexBuffer(RenderSystem* system) :m_input_layout(0), m_vertex_buffer(0)
+{
+	m_system = system;
 }

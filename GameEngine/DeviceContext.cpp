@@ -5,8 +5,9 @@
 #include "ConstantBuffer.h"
 #include "IndexBuffer.h"
 
-DeviceContext::DeviceContext(ID3D11DeviceContext* device_context)
+DeviceContext::DeviceContext(ID3D11DeviceContext* device_context, RenderSystem* system)
 {
+	m_system = system;
 	m_device_context = device_context;
 }
 

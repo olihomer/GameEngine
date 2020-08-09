@@ -2,6 +2,7 @@
 #include <iostream>
 #include "AppWindow.h"
 #include "GraphicsEngine.h"
+#include "RenderSystem.h"
 #include "SwapChain.h"
 #include "VertexShader.h"
 #include "Vector3D.h"
@@ -46,15 +47,15 @@ void AppWindow::onCreate()
 
 	//INIT SWAP CHAIN
 
-	m_swap_chain = GraphicsEngine::get()->createSwapChain();
+	m_swap_chain = GraphicsEngine::get()->getRenderSystem()->createSwapChain();
 
 	if (this->m_hwnd == nullptr)OutputDebugString("Warning: m_hwnd is null\n");
 	m_swap_chain->init(this->m_hwnd, width, height);
 
 	// PREPARE VERTEX BUFFER, INDEX BUFFER, VERTEX DATA AND VERTEX SHADER
 
-	m_vertex_buffer = GraphicsEngine::get()->createVertexBuffer();
-	m_index_buffer = GraphicsEngine::get()->createIndexBuffer();
+	m_vertex_buffer = GraphicsEngine::get()->getRenderSystem()->createVertexBuffer();
+	m_index_buffer = GraphicsEngine::get()->getRenderSystem()->createIndexBuffer();
 
 	vertex vertex_list[] =
 	{
@@ -88,9 +89,9 @@ void AppWindow::onCreate()
 	void* shader_byte_code = nullptr;
 	size_t size_shader = 0;
 
-	GraphicsEngine::get()->compileVertexShader(L"VertexShader.hlsl", "main", &shader_byte_code, &size_shader);
+	GraphicsEngine::get()->getRenderSystem()->compileVertexShader(L"VertexShader.hlsl", "main", &shader_byte_code, &size_shader);
 
-	m_vertex_shader = GraphicsEngine::get()->createVertexShader(shader_byte_code, size_shader);
+	m_vertex_shader = GraphicsEngine::get()->getRenderSystem()->createVertexShader(shader_byte_code, size_shader);
 	
 	UINT size_list = ARRAYSIZE(vertex_list);
 	UINT size_vertex = sizeof(vertex);
@@ -104,22 +105,22 @@ void AppWindow::onCreate()
 	size_list = ARRAYSIZE(index_list);
 	m_index_buffer->load(index_list, size_list);
 	
-	GraphicsEngine::get()->releaseCompiledShader();
+	GraphicsEngine::get()->getRenderSystem()->releaseCompiledShader();
 		
 	// PREPARE PIXEL SHADER
 
-	GraphicsEngine::get()->compilePixelShader(L"PixelShader.hlsl", "main", &shader_byte_code, &size_shader);
+	GraphicsEngine::get()->getRenderSystem()->compilePixelShader(L"PixelShader.hlsl", "main", &shader_byte_code, &size_shader);
 
-	m_pixel_shader = GraphicsEngine::get()->createPixelShader(shader_byte_code, size_shader);
+	m_pixel_shader = GraphicsEngine::get()->getRenderSystem()->createPixelShader(shader_byte_code, size_shader);
 
-	GraphicsEngine::get()->releaseCompiledShader();
+	GraphicsEngine::get()->getRenderSystem()->releaseCompiledShader();
 
 	// PREPARE AND LOAD CONSTANT BUFFER
 	
 	constant cc;
 	cc.m_time = 0;
 
-	m_constant_buffer = GraphicsEngine::get()->createConstantBuffer();
+	m_constant_buffer = GraphicsEngine::get()->getRenderSystem()->createConstantBuffer();
 	m_constant_buffer->load(&cc, sizeof(constant));
 
 	// CREATE CAMERA
@@ -139,9 +140,9 @@ void AppWindow::onUpdate()
 	if (isRun()) {
 
 		//CLEAR RENDER TARGET, UPDATE VIEWPORT SIZE
-		GraphicsEngine::get()->getImmediateDeviceContext()->clearRenderTargetColor(this->m_swap_chain, 0.5F, 0.1F, 0.8F, 1.0F);
+		GraphicsEngine::get()->getRenderSystem()->getImmediateDeviceContext()->clearRenderTargetColor(this->m_swap_chain, 0.5F, 0.1F, 0.8F, 1.0F);
 		RECT rc = this->getClientWindowRect();
-		GraphicsEngine::get()->getImmediateDeviceContext()->setViewportSize(rc.right - rc.left, rc.bottom - rc.top);
+		GraphicsEngine::get()->getRenderSystem()->getImmediateDeviceContext()->setViewportSize(rc.right - rc.left, rc.bottom - rc.top);
 				
 		m_camera->setAspect (((float)(rc.right - rc.left)) / ((float)(rc.bottom - rc.top)));
 
@@ -150,17 +151,17 @@ void AppWindow::onUpdate()
 		this->updateQuadPosition();
 				
 		// UPDATE AND BIND CONSTANT BUFFER
-		GraphicsEngine::get()->getImmediateDeviceContext()->setConstantBuffer(m_pixel_shader, m_constant_buffer);
-		GraphicsEngine::get()->getImmediateDeviceContext()->setConstantBuffer(m_vertex_shader, m_constant_buffer);
+		GraphicsEngine::get()->getRenderSystem()->getImmediateDeviceContext()->setConstantBuffer(m_pixel_shader, m_constant_buffer);
+		GraphicsEngine::get()->getRenderSystem()->getImmediateDeviceContext()->setConstantBuffer(m_vertex_shader, m_constant_buffer);
 		
 		// SET SHADERS AND VERTEX BUFFER AND INDEX BUFFER
-		GraphicsEngine::get()->getImmediateDeviceContext()->setVertexShader(m_vertex_shader);
-		GraphicsEngine::get()->getImmediateDeviceContext()->setPixelShader(m_pixel_shader);
-		GraphicsEngine::get()->getImmediateDeviceContext()->setVertexBuffer(m_vertex_buffer);
-		GraphicsEngine::get()->getImmediateDeviceContext()->setIndexBuffer(m_index_buffer);
+		GraphicsEngine::get()->getRenderSystem()->getImmediateDeviceContext()->setVertexShader(m_vertex_shader);
+		GraphicsEngine::get()->getRenderSystem()->getImmediateDeviceContext()->setPixelShader(m_pixel_shader);
+		GraphicsEngine::get()->getRenderSystem()->getImmediateDeviceContext()->setVertexBuffer(m_vertex_buffer);
+		GraphicsEngine::get()->getRenderSystem()->getImmediateDeviceContext()->setIndexBuffer(m_index_buffer);
 		
 		// DRAW AND PRESENT
-		GraphicsEngine::get()->getImmediateDeviceContext()->drawIndexedTriangles(m_index_buffer->getSizeIndexList(), 0, 0);
+		GraphicsEngine::get()->getRenderSystem()->getImmediateDeviceContext()->drawIndexedTriangles(m_index_buffer->getSizeIndexList(), 0, 0);
 		//GraphicsEngine::get()->getImmediateDeviceContext()->drawTriangleList(m_vertex_buffer->getSizeVertexList(), 0);
 		m_swap_chain->present(false);	
 
@@ -307,5 +308,5 @@ void AppWindow::updateQuadPosition()
 
 	cc.m_proj = m_camera->getPerspectiveTransform();
 
-	m_constant_buffer->update(GraphicsEngine::get()->getImmediateDeviceContext(), &cc);
+	m_constant_buffer->update(GraphicsEngine::get()->getRenderSystem()->getImmediateDeviceContext(), &cc);
 }

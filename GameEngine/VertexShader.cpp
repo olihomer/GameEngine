@@ -1,10 +1,10 @@
 #include "VertexShader.h"
-#include "GraphicsEngine.h"
+#include "RenderSystem.h"
 
 bool VertexShader::init(const void* shader_byte_code, size_t size_byte_code)
 {
 	OutputDebugString("Entering VertexShader::init\n");
-	HRESULT hr=GraphicsEngine::get()->m_d3d_device->CreateVertexShader(shader_byte_code, size_byte_code, NULL, &m_vertex_shader);
+	HRESULT hr= m_system->m_d3d_device->CreateVertexShader(shader_byte_code, size_byte_code, NULL, &m_vertex_shader);
 	
 	if (FAILED(hr))
 	{
@@ -14,6 +14,11 @@ bool VertexShader::init(const void* shader_byte_code, size_t size_byte_code)
 
 	OutputDebugString("VertexShader::init ok\n");
 	return true;
+}
+
+VertexShader::VertexShader(RenderSystem* system)
+{
+	m_system = system;
 }
 
 void VertexShader::release()

@@ -1,7 +1,12 @@
 #include "ConstantBuffer.h"
 #include <d3d11.h>
-#include "GraphicsEngine.h"
+#include "RenderSystem.h"
 #include "DeviceContext.h"
+
+ConstantBuffer::ConstantBuffer(RenderSystem* system)
+{
+	m_system = system;
+}
 
 bool ConstantBuffer::load(void* buffer, UINT size)
 {
@@ -20,7 +25,7 @@ bool ConstantBuffer::load(void* buffer, UINT size)
 	
 	data.pSysMem = buffer;
 
-	HRESULT hr = GraphicsEngine::get()->m_d3d_device->CreateBuffer(&desc, &data, &m_constant_buffer);
+	HRESULT hr = m_system->m_d3d_device->CreateBuffer(&desc, &data, &m_constant_buffer);
 	
 	if (FAILED(hr))
 	{
