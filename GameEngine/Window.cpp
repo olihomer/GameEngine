@@ -1,9 +1,43 @@
 #include "Window.h"
+#include <exception>
 
 LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam);
 
 Window::Window()
 {
+	WNDCLASSEX wc;
+	wc.cbSize = sizeof(WNDCLASSEX);
+	wc.style = NULL;
+	wc.lpfnWndProc = &WndProc;
+	wc.cbWndExtra = NULL;
+	wc.cbClsExtra = NULL;
+	wc.hInstance = NULL;
+	wc.hbrBackground = (HBRUSH)COLOR_WINDOW;
+	wc.hCursor = LoadCursor(NULL, IDC_ARROW);
+	wc.hIcon = LoadIcon(NULL, IDI_APPLICATION);
+	wc.hIconSm = LoadIcon(NULL, IDI_APPLICATION);
+	wc.lpszClassName = "MyWindowClass";
+	wc.lpszMenuName = NULL;
+
+	OutputDebugString("Entering Window constructor\n");
+
+	if (!::RegisterClassEx(&wc))
+		throw std::exception("Couldn't register Window class");
+
+	OutputDebugString("About to call CreateWindowEx\n");
+
+	m_hwnd = ::CreateWindowEx(WS_EX_OVERLAPPEDWINDOW, "MyWindowClass", "Oli's Windows", WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, 1024, 768, NULL, NULL, NULL, this);
+
+	if (!m_hwnd) {
+		throw std::exception("Couldn't CreateWindowEx");
+	}
+
+	OutputDebugString("Created Window\n");
+
+	::ShowWindow(m_hwnd, SW_SHOW);
+	::UpdateWindow(m_hwnd);
+	m_is_run = true;
+
 }
 
 LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
@@ -13,13 +47,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 		case WM_CREATE:
 		{
 			//window creation event
-			auto* const params = reinterpret_cast<LPCREATESTRUCT>(lparam);
-			auto* const window = reinterpret_cast<Window* const>(params->lpCreateParams);
-
-			// .. and then stored for later lookup
-			SetWindowLongPtr(hwnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(window));
-			window->setHWND(hwnd);
-			window->onCreate();
 			break;
 		}
 		case WM_DESTROY:
@@ -35,7 +62,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 		{
 			auto* const window =
 				reinterpret_cast<Window* const>(GetWindowLongPtr(hwnd, GWLP_USERDATA));
-			window->onFocus();
+			if(window)window->onFocus();
 			break;
 		}
 		case WM_KILLFOCUS:
@@ -54,70 +81,32 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 }
 
 
-bool Window::init()
-{
-	WNDCLASSEX wc;
-	wc.cbSize = sizeof(WNDCLASSEX);
-	wc.style = NULL;
-	wc.lpfnWndProc = &WndProc;
-	wc.cbWndExtra = NULL;
-	wc.cbClsExtra = NULL;
-	wc.hInstance = NULL;
-	wc.hbrBackground = (HBRUSH)COLOR_WINDOW;
-	wc.hCursor = LoadCursor(NULL, IDC_ARROW);
-	wc.hIcon = LoadIcon(NULL, IDI_APPLICATION);
-	wc.hIconSm= LoadIcon(NULL, IDI_APPLICATION);
-	wc.lpszClassName = "MyWindowClass";
-	wc.lpszMenuName = NULL;
-
-	OutputDebugString("Entering Window::init\n");
-
-	if (!::RegisterClassEx(&wc))
-		return false;
-
-	OutputDebugString("About to call CreateWindowEx\n");
-	
-	m_hwnd=::CreateWindowEx(WS_EX_OVERLAPPEDWINDOW, "MyWindowClass", "Oli's Windows", WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, 1024, 768, NULL, NULL, NULL, this);
-
-	if (!m_hwnd) {
-		OutputDebugString("Failed to CreateWindow\n");
-		return false;
-	}
-		
-	OutputDebugString("Created Window\n");
-
-	::ShowWindow(m_hwnd, SW_SHOW);
-	::UpdateWindow(m_hwnd);
-	m_is_run = true;
-
-	return true;
-}
-
 void Window::broadcast()
 {
 	MSG msg;
 	
-	while (::PeekMessage(&msg, m_hwnd, 0, 0, PM_REMOVE) > 0)
+	if (!this->m_is_init)
+	{
+		SetWindowLongPtr(m_hwnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(this));
+		this->onCreate();
+		this->m_is_init = true;
+	}
+
+	this->onUpdate();
+
+	while (::PeekMessage(&msg, NULL, 0, 0, PM_REMOVE) > 0)
 	{
 		TranslateMessage(&msg);
 		DispatchMessage(&msg);
 	}
 
-	
-	onUpdate();
 	Sleep(1);
 
 }
 
-bool Window::release()
-{
-	if (m_hwnd)
-		DestroyWindow(m_hwnd);
-	return true;
-}
-
 bool Window::isRun()
 {
+	//if (m_is_run)broadcast();
 	return m_is_run;
 }
 
@@ -126,11 +115,6 @@ RECT Window::getClientWindowRect()
 	RECT rc;
 	::GetClientRect(this->m_hwnd, &rc);
 	return rc;
-}
-
-void Window::setHWND(HWND hwnd)
-{
-	this->m_hwnd = hwnd;
 }
 
 void Window::onCreate()
@@ -157,4 +141,7 @@ void Window::onKillFocus()
 
 Window::~Window()
 {
+	OutputDebugString("CLEANUP Window destructor\n");
+	if (m_hwnd)
+		DestroyWindow(m_hwnd);
 }

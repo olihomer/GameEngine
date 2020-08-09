@@ -10,22 +10,24 @@ int main()
 		InputSystem::create();
 	}
 	catch (...) { return -1; }
-	
-	AppWindow app;
 
-	if (app.init())
+	try
 	{
+		AppWindow app;
 		OutputDebugString("Entering Main Loop\n");
-		//main loop
-		
 		while (app.isRun())
 		{
 			app.broadcast();
 		}
 	}
-
+	catch (...)
+	{
+		GraphicsEngine::release();
+		InputSystem::release();
+		return -1;
+	}
+	
 	GraphicsEngine::release();
 	InputSystem::release();
-
 	return 0;
 }
