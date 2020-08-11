@@ -31,6 +31,7 @@ private:
 	IDXGIDevice* m_dxgi_device;
 	IDXGIAdapter* m_dxgi_adapter;
 	IDXGIFactory* m_dxgi_factory;
+	ID3D11SamplerState* m_sampler_state;
 	DeviceContextPtr m_imm_device_context;
 	ID3DBlob* m_blob;
 
@@ -40,6 +41,7 @@ private:
 	friend class VertexShader;
 	friend class PixelShader;
 	friend class IndexBuffer;
+	friend class Texture;
 };
 
 

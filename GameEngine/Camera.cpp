@@ -2,7 +2,6 @@
 #include <Windows.h>
 #include <iostream>
 
-using namespace std;
 constexpr float TWO_PI = 6.28318530718f;
 
 void Camera::setPosition(Vector3D pos)

@@ -54,5 +54,6 @@ private:
 	float m_rot_z;
 	float m_trans_x;
 	float m_aspect_ratio;	
+	TexturePtr m_wood;
 };
 

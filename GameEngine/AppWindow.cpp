@@ -6,16 +6,14 @@
 #include "SwapChain.h"
 #include "VertexShader.h"
 #include "Vector3D.h"
+#include "Vector2D.h"
 #include "Matrix4x4.h"
 #include "InputSystem.h"
-
-using namespace std;
 
 struct vertex
 {
 	Vector3D position;
-	Vector3D color0;
-	//Vector3D color1;
+	Vector2D texcoord;
 };
 
 __declspec(align(16))
@@ -45,6 +43,10 @@ void AppWindow::onCreate()
 	InputSystem::get()->hideCursor();
 	InputSystem::get()->setCursorPosition(Point(width >> 1, height >> 1));
 
+	//INIT TEXTURES
+
+	m_wood = GraphicsEngine::get()->getTextureManager()->createTextureFromFile(L"Assets\\Textures\\wood.jpg");
+
 	//INIT SWAP CHAIN
 
 	m_swap_chain = GraphicsEngine::get()->getRenderSystem()->createSwapChain(this->m_hwnd, width, height);
@@ -53,32 +55,79 @@ void AppWindow::onCreate()
 
 	// PREPARE VERTEX BUFFER, INDEX BUFFER, VERTEX DATA AND VERTEX SHADER
 	
+	Vector3D position_list[] =
+	{
+		Vector3D(-0.5F,-0.5F, -0.5F),
+		Vector3D(-0.5F, 0.5F, -0.5F),
+		Vector3D(0.5F,  0.5F, -0.5F),
+		Vector3D(0.5F, -0.5F, -0.5F),
+		Vector3D(0.5F, -0.5F,  0.5F),
+		Vector3D(0.5F,  0.5F,  0.5F),
+		Vector3D(-0.5F, 0.5F,  0.5F),
+		Vector3D(-0.5F,-0.5F,  0.5F)
+	};
+
+	Vector2D texcoord_list[] =
+	{
+		Vector2D(0.0f,0.0f),
+		Vector2D(0.0f,1.0f),
+		Vector2D(1.0f,0.0f),
+		Vector2D(1.0f,1.0f)
+	};
+
 	vertex vertex_list[] =
 	{
-		{Vector3D(-0.5F, -0.5F, -0.5F), Vector3D(1,0,0)},
-		{Vector3D(-0.5F, 0.5F,  -0.5F), Vector3D(1,1,0)},  
-		{Vector3D(0.5F,0.5F,  -0.5F) , Vector3D(1, 0, 1)}, 
-		{Vector3D(0.5F,-0.5F,  -0.5F) , Vector3D(0, 1, 1)},
-		{Vector3D(0.5F, -0.5F, 0.5F), Vector3D(1,0,0.5)},
-		{Vector3D(0.5F, 0.5F,  0.5F), Vector3D(1,1,0.5)},
-		{Vector3D(-0.5F,0.5F,  0.5F) , Vector3D(1, 0.5, 1)},
-		{Vector3D(-0.5F,-0.5F,  0.5F) , Vector3D(0.5, 1, 1)}
+		{position_list[0],texcoord_list[1]},
+		{position_list[1],texcoord_list[0]},
+		{position_list[2],texcoord_list[2]},
+		{position_list[3],texcoord_list[3]},
+
+		{position_list[4],texcoord_list[1]},
+		{position_list[5],texcoord_list[0]},
+		{position_list[6],texcoord_list[2]},
+		{position_list[7],texcoord_list[3]},
+
+		{position_list[1],texcoord_list[1]},
+		{position_list[6],texcoord_list[0]},
+		{position_list[5],texcoord_list[2]},
+		{position_list[2],texcoord_list[3]},
+
+		{position_list[7],texcoord_list[1]},
+		{position_list[0],texcoord_list[0]},
+		{position_list[3],texcoord_list[2]},
+		{position_list[4],texcoord_list[3]},
+
+		{position_list[3],texcoord_list[1]},
+		{position_list[2],texcoord_list[0]},
+		{position_list[5],texcoord_list[2]},
+		{position_list[4],texcoord_list[3]},
+
+		{position_list[7],texcoord_list[1]},
+		{position_list[6],texcoord_list[0]},
+		{position_list[1],texcoord_list[2]},
+		{position_list[0],texcoord_list[3]}
+
 	};
 		
 	UINT index_list[] =
 	{
 		0,1,2,
 		2,3,0,
+
 		4,5,6,
 		6,7,4,
-		1,6,5,
-		5,2,1,
-		7,0,3,
-		3,4,7,
-		3,2,5,
-		5,4,3,
-		7,6,1,
-		1,0,7
+
+		8,9,10,
+		10,11,8,
+		
+		12,13,14,
+		14,15,12,
+
+		16,17,18,
+		18,19,16,
+
+		20,21,22,
+		22,23,20
 	};
 
 	void* shader_byte_code = nullptr;
@@ -146,6 +195,10 @@ void AppWindow::onUpdate()
 		// UPDATE AND BIND CONSTANT BUFFER
 		GraphicsEngine::get()->getRenderSystem()->getImmediateDeviceContext()->setConstantBuffer(m_pixel_shader, m_constant_buffer);
 		GraphicsEngine::get()->getRenderSystem()->getImmediateDeviceContext()->setConstantBuffer(m_vertex_shader, m_constant_buffer);
+
+		//BIND TEXTURE TO SHADERS
+		GraphicsEngine::get()->getRenderSystem()->getImmediateDeviceContext()->setTexture(m_pixel_shader, m_wood);
+		GraphicsEngine::get()->getRenderSystem()->getImmediateDeviceContext()->setTexture(m_vertex_shader, m_wood);
 		
 		// SET SHADERS AND VERTEX BUFFER AND INDEX BUFFER
 		GraphicsEngine::get()->getRenderSystem()->getImmediateDeviceContext()->setVertexShader(m_vertex_shader);
@@ -219,8 +272,8 @@ void AppWindow::onMouseMove(const Point& point)
 	int width = rc.right - rc.left;
 	int height = rc.bottom - rc.top;
 
-	m_camera->Pitch(0.5f * (point.m_y-(height>>1)) * m_delta_time);
-	m_camera->Yaw(0.5f * (point.m_x-(width>>1)) * m_delta_time);
+	m_camera->Pitch(0.2f * (point.m_y-(height>>1)) * m_delta_time);
+	m_camera->Yaw(0.2f * (point.m_x-(width>>1)) * m_delta_time);
 
 	InputSystem::get()->setCursorPosition(Point(width>>1, height>>1));
 

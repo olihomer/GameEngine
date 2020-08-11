@@ -1,13 +1,13 @@
 struct VS_INPUT
 {
 	float4 pos0: POSITION;
-	float3 color0: COLOR;
+	float2 texcoord: TEXCOORD0;
 };
 
 struct VS_OUTPUT
 {
 	float4 pos: SV_POSITION;
-	float3 color: COLOR;
+	float2 texcoord: TEXCOORD0;
 };
 
 cbuffer constant: register(b0)
@@ -33,7 +33,7 @@ VS_OUTPUT main(VS_INPUT input)
 	//SCREEN SPACE
 	output.pos = mul(output.pos, m_proj);
 
-	output.color = input.color0; //lerp(input.color0, input.color1, sin(m_time / 500.0f) + 1.0f / 2.0f);
+	output.texcoord = input.texcoord;
 		
 	return output;
 }

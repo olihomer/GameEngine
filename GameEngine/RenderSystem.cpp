@@ -152,6 +152,27 @@ RenderSystem::RenderSystem()
 
 	m_imm_device_context = std::make_shared<DeviceContext>(imm_device_context, this);
 
+	//SET UP SHADER SAMPLER
+
+	D3D11_SAMPLER_DESC samplerDesc;
+	samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+	samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;
+	samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_CLAMP;
+	samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP;
+	samplerDesc.MipLODBias = 0.0f;
+	samplerDesc.MaxAnisotropy = 1;
+	samplerDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
+	samplerDesc.MinLOD = -FLT_MAX;
+	samplerDesc.MaxLOD = FLT_MAX;
+
+	hr = m_d3d_device->CreateSamplerState(&samplerDesc, &m_sampler_state);
+	if (FAILED(hr))
+	{
+		throw std::exception("Failed to create sampler");
+	}
+
+	m_imm_device_context->setSampler(m_sampler_state);
+
 }
 
 RenderSystem::~RenderSystem()
@@ -161,6 +182,7 @@ RenderSystem::~RenderSystem()
 	m_dxgi_device->Release();
 	m_dxgi_factory->Release();
 	m_dxgi_adapter->Release();
+	m_sampler_state->Release();
 }
 
 
