@@ -17,6 +17,7 @@ public:
 	VertexShaderPtr createVertexShader(const void* shader_byte_code, size_t size_byte_code);
 	PixelShaderPtr createPixelShader(const void* shader_byte_code, size_t size_byte_code);
 	DeviceContextPtr getImmediateDeviceContext();
+	void getVertexMeshLayoutShaderByteCodeAndSize(void** byte_code, size_t* size);
 	RenderSystem();
 	~RenderSystem();
 
@@ -34,6 +35,8 @@ private:
 	ID3D11SamplerState* m_sampler_state;
 	DeviceContextPtr m_imm_device_context;
 	ID3DBlob* m_blob;
+	unsigned char m_mesh_layout_byte_code[1024];
+	size_t m_mesh_layout_size;
 
 	friend class SwapChain;
 	friend class VertexBuffer;

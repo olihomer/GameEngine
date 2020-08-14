@@ -9,6 +9,7 @@
 #include "Vector2D.h"
 #include "Matrix4x4.h"
 #include "InputSystem.h"
+#include "Mesh.h"
 
 struct vertex
 {
@@ -46,6 +47,10 @@ void AppWindow::onCreate()
 	//INIT TEXTURES
 
 	m_wood = GraphicsEngine::get()->getTextureManager()->createTextureFromFile(L"Assets\\Textures\\wood.jpg");
+
+	//INIT MESHES
+
+	m_mesh = GraphicsEngine::get()->getMeshManager()->createMeshFromFile(L"Assets\\Meshes\\statue.obj");
 
 	//INIT SWAP CHAIN
 
@@ -203,11 +208,15 @@ void AppWindow::onUpdate()
 		// SET SHADERS AND VERTEX BUFFER AND INDEX BUFFER
 		GraphicsEngine::get()->getRenderSystem()->getImmediateDeviceContext()->setVertexShader(m_vertex_shader);
 		GraphicsEngine::get()->getRenderSystem()->getImmediateDeviceContext()->setPixelShader(m_pixel_shader);
-		GraphicsEngine::get()->getRenderSystem()->getImmediateDeviceContext()->setVertexBuffer(m_vertex_buffer);
-		GraphicsEngine::get()->getRenderSystem()->getImmediateDeviceContext()->setIndexBuffer(m_index_buffer);
-		
+//		GraphicsEngine::get()->getRenderSystem()->getImmediateDeviceContext()->setVertexBuffer(m_vertex_buffer);
+//		GraphicsEngine::get()->getRenderSystem()->getImmediateDeviceContext()->setIndexBuffer(m_index_buffer);
+		GraphicsEngine::get()->getRenderSystem()->getImmediateDeviceContext()->setVertexBuffer(m_mesh->getVertexBuffer());
+		GraphicsEngine::get()->getRenderSystem()->getImmediateDeviceContext()->setIndexBuffer(m_mesh->getIndexBuffer());
+
+
+
 		// DRAW AND PRESENT
-		GraphicsEngine::get()->getRenderSystem()->getImmediateDeviceContext()->drawIndexedTriangles(m_index_buffer->getSizeIndexList(), 0, 0);
+		GraphicsEngine::get()->getRenderSystem()->getImmediateDeviceContext()->drawIndexedTriangles(m_mesh->getIndexBuffer()->getSizeIndexList(), 0, 0);
 		//GraphicsEngine::get()->getImmediateDeviceContext()->drawTriangleList(m_vertex_buffer->getSizeVertexList(), 0);
 		m_swap_chain->present(false);	
 

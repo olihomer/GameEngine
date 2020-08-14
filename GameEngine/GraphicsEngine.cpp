@@ -9,6 +9,7 @@ GraphicsEngine::GraphicsEngine()
 	{
 		m_render_system = new RenderSystem();
 		m_tex_manager = new TextureManager();
+		m_mesh_manager = new MeshManager();
 	}
 	catch (...)
 	{
@@ -21,6 +22,7 @@ GraphicsEngine::~GraphicsEngine()
 	OutputDebugString("CLEANUP Entering GraphicsEngine Destructor\n");
 	GraphicsEngine::m_engine = nullptr;
 	delete m_tex_manager;
+	delete m_mesh_manager;
 	delete m_render_system;
 	
 }
@@ -33,6 +35,11 @@ RenderSystem* GraphicsEngine::getRenderSystem()
 TextureManager* GraphicsEngine::getTextureManager()
 {
 	return m_tex_manager;
+}
+
+MeshManager* GraphicsEngine::getMeshManager()
+{
+	return m_mesh_manager;
 }
 
 

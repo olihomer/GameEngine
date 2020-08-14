@@ -1,15 +1,22 @@
 #include "AppWindow.h"
 #include "GraphicsEngine.h"
 #include "InputSystem.h"
+#include <iostream>
 
 int main()
 {
+	std::exception ex;
+
 	try
 	{
 		GraphicsEngine::create();
 		InputSystem::create();
 	}
-	catch (...) { return -1; }
+	catch (std::exception &ex)
+	{
+		return -1;
+		std::cout << ex.what();
+	}
 
 	try
 	{
@@ -17,8 +24,9 @@ int main()
 		OutputDebugString("Entering Main Loop\n");
 		while (app.isRun());
 	}
-	catch (...)
+	catch (std::exception& ex)
 	{
+		std::cout << ex.what();
 		GraphicsEngine::release();
 		InputSystem::release();
 		return -1;

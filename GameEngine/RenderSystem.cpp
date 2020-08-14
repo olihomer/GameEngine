@@ -108,6 +108,12 @@ DeviceContextPtr RenderSystem::getImmediateDeviceContext()
 	return this->m_imm_device_context;
 }
 
+void RenderSystem::getVertexMeshLayoutShaderByteCodeAndSize(void** byte_code, size_t* size)
+{
+	*byte_code = m_mesh_layout_byte_code;
+	*size = m_mesh_layout_size;
+}
+
 RenderSystem::RenderSystem()
 {
 	OutputDebugString("Entering RenderSystem()\n");
@@ -156,9 +162,9 @@ RenderSystem::RenderSystem()
 
 	D3D11_SAMPLER_DESC samplerDesc;
 	samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
-	samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;
-	samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_CLAMP;
-	samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP;
+	samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+	samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+	samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
 	samplerDesc.MipLODBias = 0.0f;
 	samplerDesc.MaxAnisotropy = 1;
 	samplerDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
@@ -172,6 +178,13 @@ RenderSystem::RenderSystem()
 	}
 
 	m_imm_device_context->setSampler(m_sampler_state);
+
+	//SET UP VERTEX MESH LAYOUT SHADER
+
+	void* byte_code = nullptr;
+	compileVertexShader(L"VertexMeshLayoutShader.hlsl", "main", &byte_code, &m_mesh_layout_size);
+	memcpy(m_mesh_layout_byte_code, byte_code, m_mesh_layout_size);
+	releaseCompiledShader();
 
 }
 
