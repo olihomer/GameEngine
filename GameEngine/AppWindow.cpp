@@ -23,7 +23,7 @@ struct constant
 	Matrix4x4 m_world;
 	Matrix4x4 m_view;
 	Matrix4x4 m_proj;
-	unsigned int m_time=0;
+	Vector4D m_light_direction;
 };
 
 
@@ -52,9 +52,10 @@ void AppWindow::onCreate()
 
 	m_mesh = GraphicsEngine::get()->getMeshManager()->createMeshFromFile(L"Assets\\Meshes\\statue.obj");
 
-	//INIT SWAP CHAIN
+	//INIT SWAP CHAIN AND DEPTH BUFFER
 
 	m_swap_chain = GraphicsEngine::get()->getRenderSystem()->createSwapChain(this->m_hwnd, width, height);
+	//createDepthBuffer(m_swap_chain, )
 
 	if (this->m_hwnd == nullptr)OutputDebugString("Warning: m_hwnd is null\n");
 
@@ -166,13 +167,12 @@ void AppWindow::onCreate()
 	// PREPARE AND LOAD CONSTANT BUFFER
 	
 	constant cc;
-	cc.m_time = 0;
-
+	
 	m_constant_buffer = GraphicsEngine::get()->getRenderSystem()->createConstantBuffer(&cc, sizeof(constant));
 	
 	// CREATE CAMERA
 
-	Vector3D pos = Vector3D(0, 0, -4);
+	Vector3D pos = Vector3D(0, 0, -2);
 	Vector3D lookat = Vector3D(0, 0, 0);
 	Vector3D up= Vector3D(0, 1, 0);
 	m_camera = new Camera(pos,lookat,up, 1.0f, 0.1f, 100.0f, 90);
@@ -195,7 +195,7 @@ void AppWindow::onUpdate()
 
 		// UPDATE POSITIONS
 		
-		this->updateQuadPosition();
+		this->updateWorld();
 				
 		// UPDATE AND BIND CONSTANT BUFFER
 		GraphicsEngine::get()->getRenderSystem()->getImmediateDeviceContext()->setConstantBuffer(m_pixel_shader, m_constant_buffer);
@@ -208,16 +208,11 @@ void AppWindow::onUpdate()
 		// SET SHADERS AND VERTEX BUFFER AND INDEX BUFFER
 		GraphicsEngine::get()->getRenderSystem()->getImmediateDeviceContext()->setVertexShader(m_vertex_shader);
 		GraphicsEngine::get()->getRenderSystem()->getImmediateDeviceContext()->setPixelShader(m_pixel_shader);
-//		GraphicsEngine::get()->getRenderSystem()->getImmediateDeviceContext()->setVertexBuffer(m_vertex_buffer);
-//		GraphicsEngine::get()->getRenderSystem()->getImmediateDeviceContext()->setIndexBuffer(m_index_buffer);
 		GraphicsEngine::get()->getRenderSystem()->getImmediateDeviceContext()->setVertexBuffer(m_mesh->getVertexBuffer());
 		GraphicsEngine::get()->getRenderSystem()->getImmediateDeviceContext()->setIndexBuffer(m_mesh->getIndexBuffer());
 
-
-
 		// DRAW AND PRESENT
 		GraphicsEngine::get()->getRenderSystem()->getImmediateDeviceContext()->drawIndexedTriangles(m_mesh->getIndexBuffer()->getSizeIndexList(), 0, 0);
-		//GraphicsEngine::get()->getImmediateDeviceContext()->drawTriangleList(m_vertex_buffer->getSizeVertexList(), 0);
 		m_swap_chain->present(false);	
 
 		//TIMING
@@ -266,7 +261,6 @@ void AppWindow::onKeyDown(int key)
 		m_camera->Translate(3.0f * m_delta_time, m_camera->getForward());
 
 	if (key == VK_ESCAPE)this->onDestroy();
-
 }
 
 void AppWindow::onKeyUp(int key)
@@ -319,18 +313,18 @@ void AppWindow::onKillFocus()
 }
 
 
-void AppWindow::updateQuadPosition()
+void AppWindow::updateWorld()
 {
 	constant cc;
-	cc.m_time = (int)m_new_delta;
-
-	m_delta_pos += m_delta_time/4.0f;
-	m_delta_scale += m_delta_time * 3.0f;
-	if (m_delta_pos > 1.0f)m_delta_pos = 0;
-
-	RECT rc = this->getClientWindowRect();
-	
 	Matrix4x4 temp;
+	
+	//LIGHTING
+	
+	Matrix4x4 m_light_rot_matrix;
+	m_light_angle += m_delta_time;
+	m_light_rot_matrix.setRotY(m_light_angle);
+	cc.m_light_direction = m_light_rot_matrix.getForward();
+	m_light_rot_matrix.debugPrint("Light:\n");
 	
 	//LOCAL TO WORLD TRANSFORM
 

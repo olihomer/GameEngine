@@ -55,6 +55,9 @@
     <Filter Include="GameEngine\GraphicsEngine\ResourceManager\MeshManager">
       <UniqueIdentifier>{b5db0d87-1c84-4666-9d63-7893b9c8f4a2}</UniqueIdentifier>
     </Filter>
+    <Filter Include="GameEngine\GraphicsEngine\RenderSystem\DepthBuffer">
+      <UniqueIdentifier>{1b2db730-46b1-4eeb-acfb-e769573f8b2e}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">

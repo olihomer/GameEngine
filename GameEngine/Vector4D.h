@@ -13,6 +13,8 @@ public:
 	{}
 	Vector4D(const Vector4D& vector) :m_x(vector.m_x), m_y(vector.m_y), m_z(vector.m_z), m_w(vector.m_w)
 	{}
+	Vector4D(const Vector3D& vector) :m_x(vector.m_x), m_y(vector.m_y), m_z(vector.m_z), m_w(1.0f)
+	{}
 
 	static Vector4D lerp(const Vector4D& start, const Vector4D& end, float delta)
 	{

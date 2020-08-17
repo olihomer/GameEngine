@@ -44,10 +44,6 @@ void Camera::lookAt(Vector3D target, Vector3D up)
 	m_camera_local_matrix.m_mat[2][1] = camera_z.m_y;
 	m_camera_local_matrix.m_mat[2][2] = camera_z.m_z;
 
-	//m_pitch = atanf(camera_z.m_y / camera_z.m_z); //PITCH ZERO => FORWARD = +VE Z WORLD AXIS. +VE PITCH = DOWNWARDS
-	//m_roll = atanf(camera_y.m_x / camera_y.m_y); //ROLL ZERO => UP = +VE Y AXIS. +VE ROLL = ANTCLOCKWISE
-	//m_yaw = atanf(camera_z.m_x / camera_z.m_z); //YAW ZERO => FORWARD = +VE Z WORLD AXIS. +VE YAW = RIGHTWARDS
-
 	//GET EULER ANGLES
 
 	float theta, psi, phi;
@@ -179,17 +175,17 @@ Vector3D Camera::getPosition()
 
 Vector3D Camera::getUp()
 {
-	return Vector3D(m_camera_local_matrix.m_mat[1][0], m_camera_local_matrix.m_mat[1][1], m_camera_local_matrix.m_mat[1][2]);
+	return m_camera_local_matrix.getUp();
 }
 
 Vector3D Camera::getRight()
 {
-	return Vector3D(m_camera_local_matrix.m_mat[0][0], m_camera_local_matrix.m_mat[0][1], m_camera_local_matrix.m_mat[0][2]);
+	return m_camera_local_matrix.getRight();
 }
 
 Vector3D Camera::getForward()
 {
-	return Vector3D(m_camera_local_matrix.m_mat[2][0], m_camera_local_matrix.m_mat[2][1], m_camera_local_matrix.m_mat[2][2]);
+	return m_camera_local_matrix.getForward();
 }
 
 Camera::Camera(Vector3D position, Vector3D lookat, Vector3D up, float aspect_ratio, float near_plane, float far_plane, int fov)

@@ -2,12 +2,14 @@ struct VS_INPUT
 {
 	float4 pos0: POSITION;
 	float2 texcoord: TEXCOORD0;
+	float3 normal: NORMAL0;
 };
 
 struct VS_OUTPUT
 {
 	float4 pos: SV_POSITION;
 	float2 texcoord: TEXCOORD0;
+	float3 normal: NORMAL0;
 };
 
 cbuffer constant: register(b0)
@@ -34,6 +36,7 @@ VS_OUTPUT main(VS_INPUT input)
 	output.pos = mul(output.pos, m_proj);
 
 	output.texcoord = input.texcoord;
+	output.normal = input.normal;
 		
 	return output;
 }

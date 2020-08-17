@@ -52,7 +52,12 @@ Mesh::Mesh(const wchar_t* full_path) :Resource(full_path)
 
 				real_t tx = attrib.texcoords[index.texcoord_index * 2 + 0];
 				real_t ty = attrib.texcoords[index.texcoord_index * 2 + 1];
-				VertexMesh vertex(Vector3D(vx, vy, vz), Vector2D(tx, ty));
+
+				real_t nx = attrib.normals[index.normal_index * 3 + 0];
+				real_t ny = attrib.normals[index.normal_index * 3 + 1];
+				real_t nz = attrib.normals[index.normal_index * 3 + 2];
+
+				VertexMesh vertex(Vector3D(vx, vy, vz), Vector2D(tx, ty), Vector3D(nx,ny,nz));
 				list_vertices.push_back(vertex);
 				list_indices.push_back((unsigned int)index_offset+v);
 			}

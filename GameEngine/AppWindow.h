@@ -33,8 +33,7 @@ public:
 	virtual void onFocus() override;
 	virtual void onKillFocus() override;
 
-
-	void updateQuadPosition();
+	void updateWorld();
 
 private:
 	SwapChainPtr m_swap_chain;
@@ -47,12 +46,10 @@ private:
 	INT64 m_old_delta;
 	INT64 m_new_delta;
 	float m_delta_time;
-	float m_delta_pos;
-	float m_delta_scale;
+	float m_light_angle;
+	float m_trans_x;
 	float m_rot_x;
 	float m_rot_y;
-	float m_rot_z;
-	float m_trans_x;
 	float m_aspect_ratio;	
 	TexturePtr m_wood;
 	MeshPtr m_mesh;
