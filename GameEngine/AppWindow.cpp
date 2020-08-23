@@ -324,8 +324,7 @@ void AppWindow::updateWorld()
 	m_light_angle += m_delta_time;
 	m_light_rot_matrix.setRotY(m_light_angle);
 	cc.m_light_direction = m_light_rot_matrix.getForward();
-	m_light_rot_matrix.debugPrint("Light:\n");
-	
+		
 	//LOCAL TO WORLD TRANSFORM
 
 	cc.m_world.setIdentity();
