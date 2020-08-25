@@ -1,9 +1,12 @@
+#pragma once
 #include <memory>
 #include "Vector3D.h"
 #include "Vector4D.h"
 #include <windows.h>
 
-#pragma once
+
+
+constexpr float TWO_PI = 6.28318530718f;
 
 // LEFT HANDED COORDINATE SYSTEM: POSITIVE X = RIGHT, POSITIVE Y = UP, POSITIVE Z = AWAY
 // ROTATIONS = ANTICLOCKWISE AS LOOKING ALONG POSITIVE AXIS
@@ -177,6 +180,44 @@ public:
 
 		sprintf_s(debug, "%s\n%f %f %f %f\n%f %f %f %f\n%f %f %f %f\n%f %f %f %f\n", txt,m_mat[0][0], m_mat[0][1], m_mat[0][2], m_mat[0][3], m_mat[1][0], m_mat[1][1], m_mat[1][2], m_mat[1][3], m_mat[2][0], m_mat[2][1], m_mat[2][2], m_mat[2][3], m_mat[3][0], m_mat[3][1], m_mat[3][2], m_mat[3][3]);
 		OutputDebugString(debug);
+	}
+
+	Vector3D getEulerAngles()
+	{
+		float yaw, pitch, roll;
+
+		Vector3D axis_x = getRight();
+		Vector3D axis_y = getUp();
+		Vector3D axis_z = getForward();
+
+		if (axis_z.m_y != 1 && axis_z.m_y != -1)
+		{
+			pitch = -asinf(axis_z.m_y);
+			yaw = atan2f(axis_z.m_x / cosf(pitch), axis_z.m_z / cosf(pitch));
+			roll = atan2f(axis_x.m_y / cosf(pitch), axis_y.m_y / cosf(pitch));
+		}
+		else
+		{
+			roll = 0;
+			if (axis_z.m_y == -1)
+			{
+				pitch = TWO_PI / 4;
+				yaw = roll + atan2(axis_y.m_x, axis_x.m_x);
+			}
+			else
+			{
+				pitch = -TWO_PI / 4;
+				yaw = -roll - atan2(axis_y.m_x, axis_x.m_x);
+			}
+
+		}
+
+		if (pitch != pitch)pitch = 0;
+		if (yaw != yaw)yaw = 0;
+		if (roll != roll)roll = 0;
+
+		return Vector3D(pitch, yaw, roll);
+
 	}
 
 };

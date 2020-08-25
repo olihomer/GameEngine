@@ -25,9 +25,12 @@ public:
 	bool compilePixelShader(const wchar_t* file_name, const char* entry_point_name, void** shader_byte_code, size_t* byte_code_size);
 
 	void releaseCompiledShader();
+	void setRasterizerState(bool cull_front);
 
 private:
 	ID3D11Device* m_d3d_device;
+	ID3D11RasterizerState* m_cull_front_state;
+	ID3D11RasterizerState* m_cull_back_state;
 	D3D_FEATURE_LEVEL m_feature_level;
 	IDXGIDevice* m_dxgi_device;
 	IDXGIAdapter* m_dxgi_adapter;
@@ -37,6 +40,8 @@ private:
 	ID3DBlob* m_blob;
 	unsigned char m_mesh_layout_byte_code[1024];
 	size_t m_mesh_layout_size;
+
+	void initRasterizerState();
 
 	friend class SwapChain;
 	friend class VertexBuffer;

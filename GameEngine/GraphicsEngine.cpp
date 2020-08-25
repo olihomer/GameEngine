@@ -23,8 +23,7 @@ GraphicsEngine::~GraphicsEngine()
 	GraphicsEngine::m_engine = nullptr;
 	delete m_tex_manager;
 	delete m_mesh_manager;
-	delete m_render_system;
-	
+	delete m_render_system;	
 }
 
 RenderSystem* GraphicsEngine::getRenderSystem()

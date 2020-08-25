@@ -34,24 +34,30 @@ public:
 	virtual void onKillFocus() override;
 
 	void updateWorld();
+	void drawMesh(const MeshPtr& mesh, const VertexShaderPtr& vs, const PixelShaderPtr& ps, const ConstantBufferPtr& cb, const TexturePtr& tex);
 
 private:
 	SwapChainPtr m_swap_chain;
 	VertexBufferPtr m_vertex_buffer;
 	VertexShaderPtr m_vertex_shader;
 	PixelShaderPtr m_pixel_shader;
+	PixelShaderPtr m_skybox_pixel_shader;
 	ConstantBufferPtr m_constant_buffer;
+	ConstantBufferPtr m_skybox_constant_buffer;
 	IndexBufferPtr m_index_buffer;
 	Camera *m_camera;
 	INT64 m_old_delta;
 	INT64 m_new_delta;
 	float m_delta_time;
 	float m_light_angle;
+	Vector3D m_light_position;
 	float m_trans_x;
 	float m_rot_x;
 	float m_rot_y;
 	float m_aspect_ratio;	
 	TexturePtr m_wood;
+	TexturePtr m_sky;
 	MeshPtr m_mesh;
+	MeshPtr m_sky_mesh;
 };
 

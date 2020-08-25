@@ -10,6 +10,12 @@
 #include "Matrix4x4.h"
 #include "InputSystem.h"
 #include "Mesh.h"
+#include "Quaternion.h"
+
+#define wUP Vector3D(0,1,0)
+#define wX Vector3D(1,0,0)
+#define wY Vector3D(0,1,0)
+#define wZ Vector3D(0,0,1)
 
 struct vertex
 {
@@ -24,6 +30,7 @@ struct constant
 	Matrix4x4 m_view;
 	Matrix4x4 m_proj;
 	Vector4D m_light_direction;
+	Vector4D m_camera_position;
 };
 
 
@@ -35,9 +42,11 @@ void AppWindow::onCreate()
 	RECT rc = this->getClientWindowRect();
 	int width = rc.right - rc.left;
 	int height = rc.bottom - rc.top;
-
+	
 	GraphicsEngine::get();
-		
+	
+	// TESTING
+
 	// INIT INPUT SYSTEM
 
 	InputSystem::get()->addListener(this);
@@ -47,135 +56,49 @@ void AppWindow::onCreate()
 	//INIT TEXTURES
 
 	m_wood = GraphicsEngine::get()->getTextureManager()->createTextureFromFile(L"Assets\\Textures\\wood.jpg");
+	m_sky = GraphicsEngine::get()->getTextureManager()->createTextureFromFile(L"Assets\\Textures\\sky.jpg");
 
 	//INIT MESHES
 
 	m_mesh = GraphicsEngine::get()->getMeshManager()->createMeshFromFile(L"Assets\\Meshes\\statue.obj");
+	m_sky_mesh = GraphicsEngine::get()->getMeshManager()->createMeshFromFile(L"Assets\\Meshes\\sphere.obj");
 
-	//INIT SWAP CHAIN AND DEPTH BUFFER
+	//INIT SWAP CHAIN
 
 	m_swap_chain = GraphicsEngine::get()->getRenderSystem()->createSwapChain(this->m_hwnd, width, height);
-	//createDepthBuffer(m_swap_chain, )
-
 	if (this->m_hwnd == nullptr)OutputDebugString("Warning: m_hwnd is null\n");
 
-	// PREPARE VERTEX BUFFER, INDEX BUFFER, VERTEX DATA AND VERTEX SHADER
-	
-	Vector3D position_list[] =
-	{
-		Vector3D(-0.5F,-0.5F, -0.5F),
-		Vector3D(-0.5F, 0.5F, -0.5F),
-		Vector3D(0.5F,  0.5F, -0.5F),
-		Vector3D(0.5F, -0.5F, -0.5F),
-		Vector3D(0.5F, -0.5F,  0.5F),
-		Vector3D(0.5F,  0.5F,  0.5F),
-		Vector3D(-0.5F, 0.5F,  0.5F),
-		Vector3D(-0.5F,-0.5F,  0.5F)
-	};
-
-	Vector2D texcoord_list[] =
-	{
-		Vector2D(0.0f,0.0f),
-		Vector2D(0.0f,1.0f),
-		Vector2D(1.0f,0.0f),
-		Vector2D(1.0f,1.0f)
-	};
-
-	vertex vertex_list[] =
-	{
-		{position_list[0],texcoord_list[1]},
-		{position_list[1],texcoord_list[0]},
-		{position_list[2],texcoord_list[2]},
-		{position_list[3],texcoord_list[3]},
-
-		{position_list[4],texcoord_list[1]},
-		{position_list[5],texcoord_list[0]},
-		{position_list[6],texcoord_list[2]},
-		{position_list[7],texcoord_list[3]},
-
-		{position_list[1],texcoord_list[1]},
-		{position_list[6],texcoord_list[0]},
-		{position_list[5],texcoord_list[2]},
-		{position_list[2],texcoord_list[3]},
-
-		{position_list[7],texcoord_list[1]},
-		{position_list[0],texcoord_list[0]},
-		{position_list[3],texcoord_list[2]},
-		{position_list[4],texcoord_list[3]},
-
-		{position_list[3],texcoord_list[1]},
-		{position_list[2],texcoord_list[0]},
-		{position_list[5],texcoord_list[2]},
-		{position_list[4],texcoord_list[3]},
-
-		{position_list[7],texcoord_list[1]},
-		{position_list[6],texcoord_list[0]},
-		{position_list[1],texcoord_list[2]},
-		{position_list[0],texcoord_list[3]}
-
-	};
-		
-	UINT index_list[] =
-	{
-		0,1,2,
-		2,3,0,
-
-		4,5,6,
-		6,7,4,
-
-		8,9,10,
-		10,11,8,
-		
-		12,13,14,
-		14,15,12,
-
-		16,17,18,
-		18,19,16,
-
-		20,21,22,
-		22,23,20
-	};
+	// PREPARE SHADERS
 
 	void* shader_byte_code = nullptr;
 	size_t size_shader = 0;
 
 	GraphicsEngine::get()->getRenderSystem()->compileVertexShader(L"VertexShader.hlsl", "main", &shader_byte_code, &size_shader);
 	m_vertex_shader = GraphicsEngine::get()->getRenderSystem()->createVertexShader(shader_byte_code, size_shader);
-	
-	UINT size_list = ARRAYSIZE(vertex_list);
-	UINT size_vertex = sizeof(vertex);
-
-	//LOAD VERTEX BUFFER
-
-	m_vertex_buffer = GraphicsEngine::get()->getRenderSystem()->createVertexBuffer(vertex_list, size_vertex, size_list, shader_byte_code, (UINT)size_shader);
-
-	//LOAD INDEX BUFFER
-
-	size_list = ARRAYSIZE(index_list);
-	m_index_buffer = GraphicsEngine::get()->getRenderSystem()->createIndexBuffer(index_list, size_list);
-	
 	GraphicsEngine::get()->getRenderSystem()->releaseCompiledShader();
 		
-	// PREPARE PIXEL SHADER
-
 	GraphicsEngine::get()->getRenderSystem()->compilePixelShader(L"PixelShader.hlsl", "main", &shader_byte_code, &size_shader);
-
 	m_pixel_shader = GraphicsEngine::get()->getRenderSystem()->createPixelShader(shader_byte_code, size_shader);
-
 	GraphicsEngine::get()->getRenderSystem()->releaseCompiledShader();
 
-	// PREPARE AND LOAD CONSTANT BUFFER
+	GraphicsEngine::get()->getRenderSystem()->compilePixelShader(L"SkyboxPS.hlsl", "main", &shader_byte_code, &size_shader);
+	m_skybox_pixel_shader = GraphicsEngine::get()->getRenderSystem()->createPixelShader(shader_byte_code, size_shader);
+	GraphicsEngine::get()->getRenderSystem()->releaseCompiledShader();
+
+	// PREPARE CONSTANT BUFFERS
 	
 	constant cc;
-	
 	m_constant_buffer = GraphicsEngine::get()->getRenderSystem()->createConstantBuffer(&cc, sizeof(constant));
+	m_skybox_constant_buffer = GraphicsEngine::get()->getRenderSystem()->createConstantBuffer(&cc, sizeof(constant));
 	
-	// CREATE CAMERA
+	// CREATE CAMERA AND LIGHTS
 
-	Vector3D pos = Vector3D(0, 0, -2);
+	Vector3D pos = Vector3D(0, 0.5f, -2);
 	Vector3D lookat = Vector3D(0, 0, 0);
 	Vector3D up= Vector3D(0, 1, 0);
 	m_camera = new Camera(pos,lookat,up, 1.0f, 0.1f, 100.0f, 90);
+
+	m_light_position = Vector3D(1, 1, 1);
 	
 }
 
@@ -190,45 +113,35 @@ void AppWindow::onUpdate()
 		GraphicsEngine::get()->getRenderSystem()->getImmediateDeviceContext()->clearRenderTargetColor(this->m_swap_chain, 0.5F, 0.1F, 0.8F, 1.0F);
 		RECT rc = this->getClientWindowRect();
 		GraphicsEngine::get()->getRenderSystem()->getImmediateDeviceContext()->setViewportSize(rc.right - rc.left, rc.bottom - rc.top);
-				
-		m_camera->setAspect (((float)(rc.right - rc.left)) / ((float)(rc.bottom - rc.top)));
+
+		m_camera->setAspect(((float)(rc.right - rc.left)) / ((float)(rc.bottom - rc.top)));
 
 		// UPDATE POSITIONS
-		
+
 		this->updateWorld();
-				
-		// UPDATE AND BIND CONSTANT BUFFER
-		GraphicsEngine::get()->getRenderSystem()->getImmediateDeviceContext()->setConstantBuffer(m_pixel_shader, m_constant_buffer);
-		GraphicsEngine::get()->getRenderSystem()->getImmediateDeviceContext()->setConstantBuffer(m_vertex_shader, m_constant_buffer);
 
-		//BIND TEXTURE TO SHADERS
-		GraphicsEngine::get()->getRenderSystem()->getImmediateDeviceContext()->setTexture(m_pixel_shader, m_wood);
-		GraphicsEngine::get()->getRenderSystem()->getImmediateDeviceContext()->setTexture(m_vertex_shader, m_wood);
-		
-		// SET SHADERS AND VERTEX BUFFER AND INDEX BUFFER
-		GraphicsEngine::get()->getRenderSystem()->getImmediateDeviceContext()->setVertexShader(m_vertex_shader);
-		GraphicsEngine::get()->getRenderSystem()->getImmediateDeviceContext()->setPixelShader(m_pixel_shader);
-		GraphicsEngine::get()->getRenderSystem()->getImmediateDeviceContext()->setVertexBuffer(m_mesh->getVertexBuffer());
-		GraphicsEngine::get()->getRenderSystem()->getImmediateDeviceContext()->setIndexBuffer(m_mesh->getIndexBuffer());
+		//DRAW OBJECTS
+		GraphicsEngine::get()->getRenderSystem()->setRasterizerState(false);
+		drawMesh(m_mesh, m_vertex_shader, m_pixel_shader, m_constant_buffer, m_wood);
+		GraphicsEngine::get()->getRenderSystem()->setRasterizerState(true);
+		drawMesh(m_sky_mesh, m_vertex_shader, m_skybox_pixel_shader, m_skybox_constant_buffer, m_sky);
 
-		// DRAW AND PRESENT
-		GraphicsEngine::get()->getRenderSystem()->getImmediateDeviceContext()->drawIndexedTriangles(m_mesh->getIndexBuffer()->getSizeIndexList(), 0, 0);
-		m_swap_chain->present(false);	
+		//PRESENT
+		m_swap_chain->present(false);
 
 		//TIMING
 		LARGE_INTEGER counter;
 		::QueryPerformanceCounter(&counter);
-		
+
 		m_old_delta = m_new_delta;
-		m_new_delta = counter.QuadPart;  
+		m_new_delta = counter.QuadPart;
 		m_delta_time = (float)m_old_delta ? ((m_new_delta - m_old_delta) / 10000000.0f) : 0;
-		
-		}
+	}
 	else
 	{
 		InputSystem::get()->removeListener(this);
 	}
-	}
+}
 	
 
 void AppWindow::onDestroy()
@@ -250,15 +163,14 @@ void AppWindow::onKeyDown(int key)
 	if (key == 'E')
 		m_camera->Roll(-1.0f * m_delta_time);
 
-
 	if (key == 'A')
-		m_camera->Translate(-3.0f * m_delta_time,m_camera->getRight());
+		m_camera->Translate(-1.0f * m_delta_time,m_camera->getRight());
 	if (key == 'D')
-		m_camera->Translate(3.0f * m_delta_time, m_camera->getRight());
+		m_camera->Translate(1.0f * m_delta_time, m_camera->getRight());
 	if (key == 'S')
-		m_camera->Translate(-3.0f * m_delta_time, m_camera->getForward());
+		m_camera->Translate(-2.0f * m_delta_time, m_camera->getForward());
 	if (key == 'W')
-		m_camera->Translate(3.0f * m_delta_time, m_camera->getForward());
+		m_camera->Translate(2.0f * m_delta_time, m_camera->getForward());
 
 	if (key == VK_ESCAPE)this->onDestroy();
 }
@@ -279,7 +191,6 @@ void AppWindow::onMouseMove(const Point& point)
 	m_camera->Yaw(0.2f * (point.m_x-(width>>1)) * m_delta_time);
 
 	InputSystem::get()->setCursorPosition(Point(width>>1, height>>1));
-
 }
 
 void AppWindow::onLeftMouseDown(const Point& point)
@@ -320,11 +231,11 @@ void AppWindow::updateWorld()
 	
 	//LIGHTING
 	
-	Matrix4x4 m_light_rot_matrix;
-	m_light_angle += m_delta_time;
-	m_light_rot_matrix.setRotY(m_light_angle);
-	cc.m_light_direction = m_light_rot_matrix.getForward();
-		
+	Quaternion::rotatePointAroundVector(m_light_position, m_delta_time * 1.0f, wUP);
+	Vector3D dir = m_light_position;
+	dir.normalize();	
+	cc.m_light_direction = dir;
+			
 	//LOCAL TO WORLD TRANSFORM
 
 	cc.m_world.setIdentity();
@@ -341,13 +252,34 @@ void AppWindow::updateWorld()
 	temp.setTranslation(Vector3D(m_trans_x, 0, 0));
 	cc.m_world *= temp;
 
-	//WORLD TO CAMERA TRANSFORM
+	//LOAD CONSTANT BUFFER WITH CAMERA TRANSFORMS AND POSITION
 
 	cc.m_view = m_camera->getCameraTransform();
-	
-	//PERSPECTIVE TRANSFORM
-
+	cc.m_camera_position = m_camera->getPosition();
 	cc.m_proj = m_camera->getPerspectiveTransform();
 
 	m_constant_buffer->update(GraphicsEngine::get()->getRenderSystem()->getImmediateDeviceContext(), &cc);
+
+	//DIFFERENT CB FOR SKYBOX
+	cc.m_world.setIdentity();
+	cc.m_world.setScale(Vector3D(100.0f, 100.0f, 100.0f));
+	cc.m_world.setTranslation(m_camera->getPosition());
+	m_skybox_constant_buffer->update(GraphicsEngine::get()->getRenderSystem()->getImmediateDeviceContext(), &cc);
+
+}
+
+void AppWindow::drawMesh(const MeshPtr& mesh, const VertexShaderPtr& vs, const PixelShaderPtr& ps, const ConstantBufferPtr& cb, const TexturePtr& tex)
+{
+	GraphicsEngine::get()->getRenderSystem()->getImmediateDeviceContext()->setConstantBuffer(ps,cb);
+	GraphicsEngine::get()->getRenderSystem()->getImmediateDeviceContext()->setConstantBuffer(vs, cb);
+	
+	GraphicsEngine::get()->getRenderSystem()->getImmediateDeviceContext()->setVertexShader(vs);
+	GraphicsEngine::get()->getRenderSystem()->getImmediateDeviceContext()->setPixelShader(ps);
+		
+	GraphicsEngine::get()->getRenderSystem()->getImmediateDeviceContext()->setTexture(ps, tex);
+	GraphicsEngine::get()->getRenderSystem()->getImmediateDeviceContext()->setTexture(ps, tex);
+
+	GraphicsEngine::get()->getRenderSystem()->getImmediateDeviceContext()->setVertexBuffer(mesh->getVertexBuffer());
+	GraphicsEngine::get()->getRenderSystem()->getImmediateDeviceContext()->setIndexBuffer(mesh->getIndexBuffer());
+	GraphicsEngine::get()->getRenderSystem()->getImmediateDeviceContext()->drawIndexedTriangles(mesh->getIndexBuffer()->getSizeIndexList(), 0, 0);
 }

@@ -186,6 +186,9 @@ RenderSystem::RenderSystem()
 	memcpy(m_mesh_layout_byte_code, byte_code, m_mesh_layout_size);
 	releaseCompiledShader();
 
+	//INITIALISE RASTERIZER
+
+	initRasterizerState();
 }
 
 RenderSystem::~RenderSystem()
@@ -196,6 +199,8 @@ RenderSystem::~RenderSystem()
 	m_dxgi_factory->Release();
 	m_dxgi_adapter->Release();
 	m_sampler_state->Release();
+	m_cull_front_state->Release();
+	m_cull_back_state->Release();
 }
 
 
@@ -236,5 +241,46 @@ bool RenderSystem::compilePixelShader(const wchar_t* file_name, const char* entr
 void RenderSystem::releaseCompiledShader()
 {
 	if (m_blob)m_blob->Release();
+}
+
+void RenderSystem::setRasterizerState(bool cull_front)
+{
+	if (cull_front)
+	{
+		m_imm_device_context->m_device_context->RSSetState(m_cull_front_state);
+		OutputDebugString("Cull front state\n");
+	}
+	else
+	{
+		m_imm_device_context->m_device_context->RSSetState(m_cull_back_state);
+		OutputDebugString("Cull back state\n");
+	}
+}
+
+void RenderSystem::initRasterizerState()
+{
+	D3D11_RASTERIZER_DESC desc = {};
+	desc.CullMode = D3D11_CULL_FRONT;
+	desc.DepthClipEnable = true;
+	desc.FillMode = D3D11_FILL_SOLID;
+
+	HRESULT hr = m_d3d_device->CreateRasterizerState(&desc, &m_cull_front_state);
+	if (FAILED(hr))
+	{
+		throw std::exception("Failed to CreateRasterizerState\n");
+	}
+
+	desc = {};
+	desc.CullMode = D3D11_CULL_BACK;
+	desc.DepthClipEnable = true;
+	desc.FillMode = D3D11_FILL_SOLID;
+
+	hr = m_d3d_device->CreateRasterizerState(&desc, &m_cull_back_state);
+	if (FAILED(hr))
+	{
+		throw std::exception("Failed to CreateRasterizerState\n");
+	}
+
+	OutputDebugString("initRasterizerState ok\n");
 }
 

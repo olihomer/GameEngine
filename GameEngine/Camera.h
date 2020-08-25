@@ -3,9 +3,12 @@
 #include "Vector3D.h"
 #include "Vector4D.h"
 #include "Matrix4x4.h"
+#include "Quaternion.h"
 
-constexpr auto DEG_RAD = 0.0174532925f;
-
+#define wUP Vector3D(0,1,0)
+#define wX Vector3D(1,0,0)
+#define wY Vector3D(0,1,0)
+#define wZ Vector3D(0,0,1)
 
 class Camera
 {
@@ -30,12 +33,10 @@ public:
 
 private:
 	Matrix4x4 m_camera_local_matrix;
+	Quaternion m_camera_quaternion;
 	Vector3D m_position;
 	float m_near_plane;
 	float m_far_plane;
-	float m_yaw;
-	float m_roll;
-	float m_pitch;
 	int m_fov;
 	float m_aspect;
 };

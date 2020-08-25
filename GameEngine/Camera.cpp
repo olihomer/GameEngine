@@ -2,7 +2,10 @@
 #include <Windows.h>
 #include <iostream>
 
-constexpr float TWO_PI = 6.28318530718f;
+#define wUP Vector3D(0,1,0)
+#define wX Vector3D(1,0,0)
+#define wY Vector3D(0,1,0)
+#define wZ Vector3D(0,0,1)
 
 void Camera::setPosition(Vector3D pos)
 {
@@ -19,15 +22,15 @@ void Camera::lookAt(Vector3D target, Vector3D up)
 	m_camera_local_matrix.setIdentity();
 
 	//SET AXES
-
+		
 	Vector3D camera_z = (target - m_position);
 	camera_z.normalize();
 	Vector3D camera_y = up;
 	camera_y.normalize();
 	Vector3D camera_x;
-	camera_x.cross(camera_y, camera_z);
+	camera_x=Vector3D::cross(camera_y, camera_z);
 	camera_x.normalize();
-	camera_y.cross(camera_z, camera_x);
+	camera_y=Vector3D::cross(camera_z, camera_x);
 	camera_y.normalize();
 
 	//COPY TO STATE MATRIX
@@ -44,49 +47,12 @@ void Camera::lookAt(Vector3D target, Vector3D up)
 	m_camera_local_matrix.m_mat[2][1] = camera_z.m_y;
 	m_camera_local_matrix.m_mat[2][2] = camera_z.m_z;
 
-	//GET EULER ANGLES
+	//COPY TO QUATERNION
 
-	float theta, psi, phi;
-
-	if (camera_z.m_y != 1 && camera_z.m_y != -1)
-	{
-		psi = -asinf(camera_z.m_y);
-		theta = atan2f(camera_z.m_x / cosf(psi), camera_z.m_z / cosf(psi));
-		phi = atan2f(camera_x.m_y / cosf(psi), camera_y.m_y / cosf(psi));
-	}
-	else
-	{
-		phi = 0;
-		if (camera_z.m_y == -1)
-		{
-			psi = TWO_PI / 4;
-			theta = phi + atan2(camera_y.m_x, camera_x.m_x);
-		}
-		else
-		{
-			psi = -TWO_PI / 4;
-			theta = -phi - atan2(camera_y.m_x, camera_x.m_x);
-		}
-
-	}
-
-	m_pitch = psi;
-	m_yaw = theta;
-	m_roll = phi;
-
-	if (m_pitch != m_pitch)m_pitch = 0;
-	if (m_yaw != m_yaw)m_yaw = 0;
-	if (m_roll != m_roll)m_roll = 0;
+	m_camera_quaternion = Quaternion(m_camera_local_matrix);
 
 }
 
-
-void Camera::Pitch(float theta)
-{
-	m_pitch += theta;
-	if (m_pitch > TWO_PI)m_pitch -= TWO_PI;
-	if (m_pitch < -TWO_PI)m_pitch += TWO_PI;
-}
 
 void Camera::Translate(float delta, Vector3D direction)
 {
@@ -96,18 +62,29 @@ void Camera::Translate(float delta, Vector3D direction)
 
 }
 
+void Camera::Pitch(float theta)
+{
+	Quaternion q;
+	q.setRotationAroundAxis(theta, getRight());
+	m_camera_quaternion = q * m_camera_quaternion;
+	m_camera_local_matrix = m_camera_quaternion.toMatrix();
+}
+
 void Camera::Yaw(float theta)
 {
-	m_yaw += theta;
-	if (m_yaw > TWO_PI)m_yaw -= TWO_PI;
-	if (m_yaw < -TWO_PI)m_yaw += TWO_PI;
+	Quaternion q;
+	q.setRotationAroundAxis(theta, wUP);
+	m_camera_quaternion = q * m_camera_quaternion;
+	m_camera_local_matrix = m_camera_quaternion.toMatrix();
 }
 
 void Camera::Roll(float theta)
 {
-	m_roll += theta;
-	if (m_roll > TWO_PI)m_roll -= TWO_PI;
-	if (m_roll < -TWO_PI)m_roll += TWO_PI;
+	Quaternion q;
+	q.setRotationAroundAxis(theta, getForward());
+	m_camera_quaternion = q * m_camera_quaternion;
+	m_camera_local_matrix = m_camera_quaternion.toMatrix();
+
 }
 
 void Camera::debugPrintState()
@@ -118,7 +95,7 @@ void Camera::debugPrintState()
 	temp.debugPrint("Camera World Matrix");
 	
 	char debug[200];
-	sprintf_s(debug, "Pitch: %f, Roll: %f, Yaw %f\nMagUp: %f, MagRight %f, MagForward %f\n", m_pitch / DEG_RAD, m_roll / DEG_RAD, m_yaw / DEG_RAD,this->getUp().magnitude(),  this->getRight().magnitude(), this->getForward().magnitude());
+	sprintf_s(debug, "MagUp: %f, MagRight %f, MagForward %f\n", this->getUp().magnitude(),  this->getRight().magnitude(), this->getForward().magnitude());
 	OutputDebugString(debug);
 }
 
@@ -135,37 +112,17 @@ Matrix4x4 Camera::getPerspectiveTransform()
 	persp.m_mat[2][3] = 1.0f;
 	persp.m_mat[3][3] = 0;
 	return persp;
-
 }
 
 Matrix4x4 Camera::getCameraTransform()
 {
-	Matrix4x4 cam,temp;
-	cam.setIdentity(); //CORRESPONDS TO CAMERA LOOKING +VE Z, UP = +VE Y, RIGHT = +VE X
+	Matrix4x4 cam;
 	
-	temp.setRotX(m_pitch); //APPLY PITCH
-	cam *= temp;
-
-	temp.setIdentity();
-	temp.setRotY(m_yaw); //APPLY YAW
-	cam *= temp;
-
-	temp.setIdentity();
-	temp.setRotZ(m_roll); //APPLY ROLL
-	temp *= cam;
-
-	cam = temp;
-
-	m_camera_local_matrix = cam;
-
+	cam = m_camera_local_matrix;
 	cam.setTranslation(m_position);
 	cam.invert();
 		
-	//cout << "Pitch: "<< m_pitch << " Roll: " << m_roll << " Yaw: "<< m_yaw << endl;
-	//cout << "Forward: " << this->getForward() << "Up: " << this->getUp() << " Right: " << this->getRight()<<endl;
-
 	return cam;
-	
 }
 
 Vector3D Camera::getPosition()
@@ -202,7 +159,5 @@ Camera::Camera(Vector3D position, Vector3D lookat, Vector3D up, float aspect_rat
 	m_fov = fov;
 
 	this->debugPrintState();
-
-
 }
 
