@@ -105,7 +105,7 @@ PixelShaderPtr RenderSystem::createPixelShader(const void* shader_byte_code, siz
 
 DeviceContextPtr RenderSystem::getImmediateDeviceContext()
 {
-	return this->m_imm_device_context;
+	return this->m_device_context_wrapper;
 }
 
 ID2D1DeviceContext* RenderSystem::get2DDeviceContext()
@@ -141,10 +141,9 @@ RenderSystem::RenderSystem()
 	UINT num_feature_levels = ARRAYSIZE(feature_levels);
 
 	HRESULT hr;
-	ID3D11DeviceContext* imm_device_context;
-
+	
 	for (UINT driver_type_index = 0; driver_type_index < num_driver_types;) {
-		hr = D3D11CreateDevice(NULL, driver_types[driver_type_index], NULL, D3D11_CREATE_DEVICE_DEBUG | D3D11_CREATE_DEVICE_BGRA_SUPPORT, feature_levels, num_feature_levels, D3D11_SDK_VERSION, &m_d3d_device, &m_feature_level, &imm_device_context);
+		hr = D3D11CreateDevice(NULL, driver_types[driver_type_index], NULL, D3D11_CREATE_DEVICE_DEBUG | D3D11_CREATE_DEVICE_BGRA_SUPPORT, feature_levels, num_feature_levels, D3D11_SDK_VERSION, &m_d3d_device, &m_feature_level, &m_imm_device_context);
 
 		if (SUCCEEDED(hr))
 			break;
@@ -165,7 +164,7 @@ RenderSystem::RenderSystem()
 
 	OutputDebugString("D3D Device Created ok\n");
 
-	m_imm_device_context = std::make_shared<DeviceContext>(imm_device_context, this);
+	m_device_context_wrapper = std::make_shared<DeviceContext>(m_imm_device_context, this);
 
 	// CREATE DIRECT2D DEVICES
 
@@ -218,7 +217,7 @@ RenderSystem::RenderSystem()
 		throw std::exception("Failed to create sampler");
 	}
 
-	m_imm_device_context->setSampler(m_sampler_state);
+	m_device_context_wrapper->setSampler(m_sampler_state);
 
 	//SET UP VERTEX MESH LAYOUT SHADER
 
@@ -236,6 +235,7 @@ RenderSystem::~RenderSystem()
 {
 	OutputDebugString("CLEANUP RenderSystem destructor\n");
 	m_d3d_device->Release();
+	m_imm_device_context->Release();
 	m_dxgi_device->Release();
 	m_dxgi_factory->Release();
 	m_dxgi_adapter->Release();
@@ -291,11 +291,11 @@ void RenderSystem::setRasterizerState(bool cull_front)
 {
 	if (cull_front)
 	{
-		m_imm_device_context->m_device_context->RSSetState(m_cull_front_state);
+		m_imm_device_context->RSSetState(m_cull_front_state);
 	}
 	else
 	{
-		m_imm_device_context->m_device_context->RSSetState(m_cull_back_state);
+		m_imm_device_context->RSSetState(m_cull_back_state);
 	}
 }
 

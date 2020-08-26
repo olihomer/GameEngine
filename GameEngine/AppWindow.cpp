@@ -111,43 +111,22 @@ void AppWindow::onUpdate()
 	if (m_is_run) {
 
 		//CLEAR RENDER TARGET, UPDATE VIEWPORT SIZE
-		GraphicsEngine::get()->getRenderSystem()->getImmediateDeviceContext()->clearRenderTargetColor(this->m_swap_chain, 0.5F, 0.1F, 0.8F, 1.0F);
+		DeviceContextPtr dc = GraphicsEngine::get()->getRenderSystem()->getImmediateDeviceContext();
+		dc->clearRenderTargetColor(this->m_swap_chain, 0.5F, 0.1F, 0.8F, 1.0F);
 		RECT rc = this->getClientWindowRect();
-		GraphicsEngine::get()->getRenderSystem()->getImmediateDeviceContext()->setViewportSize(rc.right - rc.left, rc.bottom - rc.top);
+		dc->setViewportSize(rc.right - rc.left, rc.bottom - rc.top);
 
 		m_camera->setAspect(((float)(rc.right - rc.left)) / ((float)(rc.bottom - rc.top)));
 
 		// UPDATE POSITIONS
-
-		this->updateWorld();
+		updateWorld();
 
 		//DRAW 3D OBJECTS
-		GraphicsEngine::get()->getRenderSystem()->setRasterizerState(false);
-		drawMesh(m_mesh, m_vertex_shader, m_pixel_shader, m_constant_buffer, m_wood);
-		GraphicsEngine::get()->getRenderSystem()->setRasterizerState(true);
-		drawMesh(m_sky_mesh, m_vertex_shader, m_skybox_pixel_shader, m_skybox_constant_buffer, m_sky);
+		drawMesh(m_mesh, m_vertex_shader, m_pixel_shader, m_constant_buffer, m_wood,false);
+		drawMesh(m_sky_mesh, m_vertex_shader, m_skybox_pixel_shader, m_skybox_constant_buffer, m_sky,true);
 
-		//DRAW 2D OBJECTS
-
-		ID2D1SolidColorBrush* pBrush;
-
-		IDWriteFactory* factory;
-		DWriteCreateFactory(DWRITE_FACTORY_TYPE_SHARED, __uuidof(IDWriteFactory), (IUnknown**)&factory);
-		IDWriteTextFormat* textformat;
-
-		factory->CreateTextFormat(L"Arial", NULL, DWRITE_FONT_WEIGHT_NORMAL, DWRITE_FONT_STYLE_NORMAL, DWRITE_FONT_STRETCH_NORMAL, 24, L"en-UK", &textformat);
-				
-		GraphicsEngine::get()->getRenderSystem()->get2DDeviceContext()->CreateSolidColorBrush(D2D1::ColorF(D2D1::ColorF::BlueViolet), &pBrush);
-		GraphicsEngine::get()->getRenderSystem()->get2DDeviceContext()->BeginDraw();
-		
-		D2D1_RECT_F rect = D2D1::RectF(rc.left + 100.0f, rc.top + 100.0f, rc.right - 100.0f, rc.bottom - 100.0f);
-		GraphicsEngine::get()->getRenderSystem()->get2DDeviceContext()->DrawRectangle(D2D1::RectF(rc.left + 100.0f, rc.top + 100.0f, rc.right - 100.0f, rc.bottom - 100.0f), pBrush);
-		GraphicsEngine::get()->getRenderSystem()->get2DDeviceContext()->DrawText(L"Hello World", 11, textformat, &rect, pBrush);
-		GraphicsEngine::get()->getRenderSystem()->get2DDeviceContext()->EndDraw();
-		
-		pBrush->Release();
-		factory->Release();
-		textformat->Release();
+		//DRAW 2D GRAPHICS
+		Draw2DGraphics(rc);
 
 		//PRESENT
 		m_swap_chain->present(false);
@@ -164,6 +143,29 @@ void AppWindow::onUpdate()
 	{
 		InputSystem::get()->removeListener(this);
 	}
+}
+
+void AppWindow::Draw2DGraphics(RECT& rc)
+{
+	ID2D1SolidColorBrush* pBrush;
+
+	IDWriteFactory* factory;
+	DWriteCreateFactory(DWRITE_FACTORY_TYPE_SHARED, __uuidof(IDWriteFactory), (IUnknown**)&factory);
+	
+	IDWriteTextFormat* textformat;
+	factory->CreateTextFormat(L"Arial", NULL, DWRITE_FONT_WEIGHT_NORMAL, DWRITE_FONT_STYLE_NORMAL, DWRITE_FONT_STRETCH_NORMAL, 24, L"en-UK", &textformat);
+
+	GraphicsEngine::get()->getRenderSystem()->get2DDeviceContext()->CreateSolidColorBrush(D2D1::ColorF(D2D1::ColorF::BlueViolet), &pBrush);
+	GraphicsEngine::get()->getRenderSystem()->get2DDeviceContext()->BeginDraw();
+
+	D2D1_RECT_F rect = D2D1::RectF(rc.left + 100.0f, rc.top + 100.0f, rc.right - 100.0f, rc.bottom - 100.0f);
+	GraphicsEngine::get()->getRenderSystem()->get2DDeviceContext()->DrawRectangle(rect, pBrush);
+	GraphicsEngine::get()->getRenderSystem()->get2DDeviceContext()->DrawTextA(L"Hello World", 11, textformat, &rect, pBrush);
+	GraphicsEngine::get()->getRenderSystem()->get2DDeviceContext()->EndDraw();
+
+	pBrush->Release();
+	factory->Release();
+	textformat->Release();
 }
 	
 
@@ -253,14 +255,12 @@ void AppWindow::updateWorld()
 	Matrix4x4 temp;
 	
 	//LIGHTING
-	
 	Quaternion::rotatePointAroundVector(m_light_position, m_delta_time * 1.0f, wUP);
 	Vector3D dir = m_light_position;
 	dir.normalize();	
 	cc.m_light_direction = dir;
 			
-	//LOCAL TO WORLD TRANSFORM
-
+	//OBJECTS - LOCAL TO WORLD TRANSFORM
 	cc.m_world.setIdentity();
 	temp.setRotX(m_rot_x);
 	cc.m_world *= temp;
@@ -276,14 +276,13 @@ void AppWindow::updateWorld()
 	cc.m_world *= temp;
 
 	//LOAD CONSTANT BUFFER WITH CAMERA TRANSFORMS AND POSITION
-
 	cc.m_view = m_camera->getCameraTransform();
 	cc.m_camera_position = m_camera->getPosition();
 	cc.m_proj = m_camera->getPerspectiveTransform();
-
 	m_constant_buffer->update(GraphicsEngine::get()->getRenderSystem()->getImmediateDeviceContext(), &cc);
 
 	//DIFFERENT CB FOR SKYBOX
+
 	cc.m_world.setIdentity();
 	cc.m_world.setScale(Vector3D(100.0f, 100.0f, 100.0f));
 	cc.m_world.setTranslation(m_camera->getPosition());
@@ -291,18 +290,23 @@ void AppWindow::updateWorld()
 
 }
 
-void AppWindow::drawMesh(const MeshPtr& mesh, const VertexShaderPtr& vs, const PixelShaderPtr& ps, const ConstantBufferPtr& cb, const TexturePtr& tex)
+void AppWindow::drawMesh(const MeshPtr& mesh, const VertexShaderPtr& vs, const PixelShaderPtr& ps, const ConstantBufferPtr& cb, const TexturePtr& tex, bool cullfront)
 {
-	GraphicsEngine::get()->getRenderSystem()->getImmediateDeviceContext()->setConstantBuffer(ps,cb);
-	GraphicsEngine::get()->getRenderSystem()->getImmediateDeviceContext()->setConstantBuffer(vs, cb);
-	
-	GraphicsEngine::get()->getRenderSystem()->getImmediateDeviceContext()->setVertexShader(vs);
-	GraphicsEngine::get()->getRenderSystem()->getImmediateDeviceContext()->setPixelShader(ps);
-		
-	GraphicsEngine::get()->getRenderSystem()->getImmediateDeviceContext()->setTexture(ps, tex);
-	GraphicsEngine::get()->getRenderSystem()->getImmediateDeviceContext()->setTexture(ps, tex);
+	RenderSystem* system = GraphicsEngine::get()->getRenderSystem();
+	DeviceContextPtr dc = system->getImmediateDeviceContext();
 
-	GraphicsEngine::get()->getRenderSystem()->getImmediateDeviceContext()->setVertexBuffer(mesh->getVertexBuffer());
-	GraphicsEngine::get()->getRenderSystem()->getImmediateDeviceContext()->setIndexBuffer(mesh->getIndexBuffer());
-	GraphicsEngine::get()->getRenderSystem()->getImmediateDeviceContext()->drawIndexedTriangles(mesh->getIndexBuffer()->getSizeIndexList(), 0, 0);
+	system->setRasterizerState(cullfront);
+
+	dc->setConstantBuffer(ps,cb);
+	dc->setConstantBuffer(vs, cb);
+	
+	dc->setVertexShader(vs);
+	dc->setPixelShader(ps);
+		
+	dc->setTexture(ps, tex);
+	dc->setTexture(ps, tex);
+
+	dc->setVertexBuffer(mesh->getVertexBuffer());
+	dc->setIndexBuffer(mesh->getIndexBuffer());
+	dc->drawIndexedTriangles(mesh->getIndexBuffer()->getSizeIndexList(), 0, 0);
 }

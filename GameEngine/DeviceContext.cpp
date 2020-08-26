@@ -15,7 +15,6 @@ DeviceContext::DeviceContext(ID3D11DeviceContext* device_context, RenderSystem* 
 DeviceContext::~DeviceContext()
 {
 	OutputDebugString("CLEANUP DeviceContext Destructor\n");
-	m_device_context->Release();
 }
 
 void DeviceContext::clearRenderTargetColor(const SwapChainPtr& swap_chain,float red, float green, float blue, float alpha)

@@ -37,11 +37,12 @@ private:
 	ID3D11RasterizerState* m_cull_back_state;
 	D3D_FEATURE_LEVEL m_feature_level;
 	ID3D11Device* m_d3d_device;
+	ID3D11DeviceContext* m_imm_device_context;
 	IDXGIDevice* m_dxgi_device;
 	IDXGIAdapter* m_dxgi_adapter;
 	IDXGIFactory* m_dxgi_factory;
 	ID3D11SamplerState* m_sampler_state;
-	DeviceContextPtr m_imm_device_context;
+	DeviceContextPtr m_device_context_wrapper;
 	ID3DBlob* m_blob;
 	unsigned char m_mesh_layout_byte_code[1024];
 	size_t m_mesh_layout_size;

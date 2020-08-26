@@ -19,6 +19,7 @@ public:
 	
 	virtual void onCreate() override;
 	virtual void onUpdate() override;
+	void Draw2DGraphics(RECT& rc);
 	virtual void onDestroy() override;
 
 	//Listener call backs for Input
@@ -34,7 +35,7 @@ public:
 	virtual void onKillFocus() override;
 
 	void updateWorld();
-	void drawMesh(const MeshPtr& mesh, const VertexShaderPtr& vs, const PixelShaderPtr& ps, const ConstantBufferPtr& cb, const TexturePtr& tex);
+	void drawMesh(const MeshPtr& mesh, const VertexShaderPtr& vs, const PixelShaderPtr& ps, const ConstantBufferPtr& cb, const TexturePtr& tex, bool cullfront);
 
 private:
 	SwapChainPtr m_swap_chain;
