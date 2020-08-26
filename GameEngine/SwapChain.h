@@ -1,5 +1,6 @@
 #pragma once
 #include <d3d11.h>
+#include <d2d1_1.h>
 #include "Prerequisites.h"
 
 
@@ -17,5 +18,6 @@ private:
 	RenderSystem* m_system = nullptr;
 	ID3D11DepthStencilState* m_pDSState = nullptr;
 	ID3D11DepthStencilView* m_pDSV = nullptr;
+	ID2D1Bitmap1* m_bitmap;
 };
 

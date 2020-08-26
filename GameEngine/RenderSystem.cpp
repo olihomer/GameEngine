@@ -108,6 +108,11 @@ DeviceContextPtr RenderSystem::getImmediateDeviceContext()
 	return this->m_imm_device_context;
 }
 
+ID2D1DeviceContext* RenderSystem::get2DDeviceContext()
+{
+	return m_d2d_context;
+}
+
 void RenderSystem::getVertexMeshLayoutShaderByteCodeAndSize(void** byte_code, size_t* size)
 {
 	*byte_code = m_mesh_layout_byte_code;
@@ -117,6 +122,8 @@ void RenderSystem::getVertexMeshLayoutShaderByteCodeAndSize(void** byte_code, si
 RenderSystem::RenderSystem()
 {
 	OutputDebugString("Entering RenderSystem()\n");
+
+	//CREATE D3D11DEVICE
 
 	D3D_DRIVER_TYPE driver_types[] =
 	{
@@ -137,7 +144,7 @@ RenderSystem::RenderSystem()
 	ID3D11DeviceContext* imm_device_context;
 
 	for (UINT driver_type_index = 0; driver_type_index < num_driver_types;) {
-		hr = D3D11CreateDevice(NULL, driver_types[driver_type_index], NULL, D3D11_CREATE_DEVICE_DEBUG, feature_levels, num_feature_levels, D3D11_SDK_VERSION, &m_d3d_device, &m_feature_level, &imm_device_context);
+		hr = D3D11CreateDevice(NULL, driver_types[driver_type_index], NULL, D3D11_CREATE_DEVICE_DEBUG | D3D11_CREATE_DEVICE_BGRA_SUPPORT, feature_levels, num_feature_levels, D3D11_SDK_VERSION, &m_d3d_device, &m_feature_level, &imm_device_context);
 
 		if (SUCCEEDED(hr))
 			break;
@@ -150,13 +157,47 @@ RenderSystem::RenderSystem()
 		throw std::exception("Failed to Create D3D Device");
 	}
 
+	// GET FACTORY AND DEVICE CONTEXT
+
 	m_d3d_device->QueryInterface(__uuidof(IDXGIDevice), (void**)&m_dxgi_device);
 	m_dxgi_device->GetParent(__uuidof(IDXGIAdapter), (void**)&m_dxgi_adapter);
 	m_dxgi_adapter->GetParent(__uuidof(IDXGIFactory), (void**)&m_dxgi_factory);
 
-	OutputDebugString("D3D Device Created Ok\n");
+	OutputDebugString("D3D Device Created ok\n");
 
 	m_imm_device_context = std::make_shared<DeviceContext>(imm_device_context, this);
+
+	// CREATE DIRECT2D DEVICES
+
+	D2D1_FACTORY_OPTIONS options;
+	options.debugLevel = D2D1_DEBUG_LEVEL_INFORMATION;
+	hr=D2D1CreateFactory(D2D1_FACTORY_TYPE_SINGLE_THREADED, __uuidof(ID2D1Factory), &options ,(void**)&m_d2d_factory);
+
+	if (FAILED(hr))
+	{
+		throw std::exception("Failed to Create D2D Factory");
+	}
+
+	OutputDebugString("D2D Factory Created ok\n");
+
+	hr=m_d2d_factory->CreateDevice(m_dxgi_device, &m_d2d_device);
+
+	if (FAILED(hr))
+	{
+		throw std::exception("Failed to Create D2D Device");
+	}
+
+	OutputDebugString("D2D Device Created ok\n");
+
+	hr = m_d2d_device->CreateDeviceContext(D2D1_DEVICE_CONTEXT_OPTIONS_NONE, &m_d2d_context);
+
+	if (FAILED(hr))
+	{
+		throw std::exception("Failed to Create D2D DeviceContext");
+	}
+
+	OutputDebugString("D2D DeviceContext Created ok\n");
+
 
 	//SET UP SHADER SAMPLER
 
@@ -201,6 +242,9 @@ RenderSystem::~RenderSystem()
 	m_sampler_state->Release();
 	m_cull_front_state->Release();
 	m_cull_back_state->Release();
+	m_d2d_factory->Release();
+	m_d2d_device->Release();
+	m_d2d_context->Release();
 }
 
 
@@ -248,12 +292,10 @@ void RenderSystem::setRasterizerState(bool cull_front)
 	if (cull_front)
 	{
 		m_imm_device_context->m_device_context->RSSetState(m_cull_front_state);
-		OutputDebugString("Cull front state\n");
 	}
 	else
 	{
 		m_imm_device_context->m_device_context->RSSetState(m_cull_back_state);
-		OutputDebugString("Cull back state\n");
 	}
 }
 

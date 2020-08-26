@@ -7,6 +7,8 @@ SwapChain::SwapChain(HWND hwnd, UINT width, UINT height,RenderSystem* system)
 	m_system = system;
 	OutputDebugString("Entering SwapChain()\n");
 
+	//CREATE SWAP CHAIN
+
 	ID3D11Device* device = m_system->m_d3d_device;
 	DXGI_SWAP_CHAIN_DESC sc_desc;
 	ZeroMemory(&sc_desc, sizeof(sc_desc));
@@ -19,7 +21,7 @@ SwapChain::SwapChain(HWND hwnd, UINT width, UINT height,RenderSystem* system)
 	sc_desc.BufferDesc.Height = height;
 	sc_desc.BufferDesc.RefreshRate.Numerator = 60;
 	sc_desc.BufferDesc.RefreshRate.Denominator = 1;
-	sc_desc.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	sc_desc.BufferDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
 	sc_desc.OutputWindow = hwnd;
 	sc_desc.Windowed = true;
 
@@ -32,6 +34,8 @@ SwapChain::SwapChain(HWND hwnd, UINT width, UINT height,RenderSystem* system)
 
 	OutputDebugString("Created SwapChain\n");
 
+	//GET BACK BUFFER
+
 	ID3D11Texture2D* back_buffer = nullptr;
 	hr = m_dxgi_swapchain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&back_buffer);
 
@@ -39,6 +43,8 @@ SwapChain::SwapChain(HWND hwnd, UINT width, UINT height,RenderSystem* system)
 	{
 		throw std::exception("Failed to GetBuffer\n");
 	}
+
+	//CREATE 3D RENDER TARGET VIEW
 
 	hr = device->CreateRenderTargetView(back_buffer, NULL, &m_render_target_view);
 	back_buffer->Release();
@@ -48,6 +54,33 @@ SwapChain::SwapChain(HWND hwnd, UINT width, UINT height,RenderSystem* system)
 		throw std::exception("Failed to CreateRenderTargetView\n");
 	}
 	
+	//CREATE 2D RENDER TARGET
+		
+	D2D1_BITMAP_PROPERTIES1 bitmapProperties = {};
+	bitmapProperties.bitmapOptions = D2D1_BITMAP_OPTIONS_TARGET| D2D1_BITMAP_OPTIONS_CANNOT_DRAW;
+	bitmapProperties.pixelFormat = D2D1_PIXEL_FORMAT{ DXGI_FORMAT_B8G8R8A8_UNORM, D2D1_ALPHA_MODE_IGNORE };
+	
+	IDXGISurface* dxgiBackBuffer;
+	hr=m_dxgi_swapchain->GetBuffer(0, __uuidof(IDXGISurface), (void**)&dxgiBackBuffer);
+
+	if (FAILED(hr))
+	{
+		throw std::exception("Failed to DXGISurface GetBuffer\n");
+	}
+		
+	hr=system->m_d2d_context->CreateBitmapFromDxgiSurface(dxgiBackBuffer, &bitmapProperties, &m_bitmap);
+
+	if (FAILED(hr))
+	{
+		throw std::exception("Failed to CreateBitmapfromDXGISurface\n");
+	}
+
+	system->m_d2d_context->SetTarget(m_bitmap);
+
+	dxgiBackBuffer->Release();
+	
+	OutputDebugString("Created 2D Render Target ok\n");
+
 	//SET UP DEPTH-STENCIL BUFFER
 
 	D3D11_TEXTURE2D_DESC descDepth;
@@ -136,6 +169,7 @@ SwapChain::~SwapChain()
 	m_pDSState->Release();
 	m_dxgi_swapchain->Release();
 	m_render_target_view->Release();
+	m_bitmap->Release(); 
 	
 }
 

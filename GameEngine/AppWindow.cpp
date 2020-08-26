@@ -11,6 +11,7 @@
 #include "InputSystem.h"
 #include "Mesh.h"
 #include "Quaternion.h"
+#include <dwrite.h>
 
 #define wUP Vector3D(0,1,0)
 #define wX Vector3D(1,0,0)
@@ -120,11 +121,33 @@ void AppWindow::onUpdate()
 
 		this->updateWorld();
 
-		//DRAW OBJECTS
+		//DRAW 3D OBJECTS
 		GraphicsEngine::get()->getRenderSystem()->setRasterizerState(false);
 		drawMesh(m_mesh, m_vertex_shader, m_pixel_shader, m_constant_buffer, m_wood);
 		GraphicsEngine::get()->getRenderSystem()->setRasterizerState(true);
 		drawMesh(m_sky_mesh, m_vertex_shader, m_skybox_pixel_shader, m_skybox_constant_buffer, m_sky);
+
+		//DRAW 2D OBJECTS
+
+		ID2D1SolidColorBrush* pBrush;
+
+		IDWriteFactory* factory;
+		DWriteCreateFactory(DWRITE_FACTORY_TYPE_SHARED, __uuidof(IDWriteFactory), (IUnknown**)&factory);
+		IDWriteTextFormat* textformat;
+
+		factory->CreateTextFormat(L"Arial", NULL, DWRITE_FONT_WEIGHT_NORMAL, DWRITE_FONT_STYLE_NORMAL, DWRITE_FONT_STRETCH_NORMAL, 24, L"en-UK", &textformat);
+				
+		GraphicsEngine::get()->getRenderSystem()->get2DDeviceContext()->CreateSolidColorBrush(D2D1::ColorF(D2D1::ColorF::BlueViolet), &pBrush);
+		GraphicsEngine::get()->getRenderSystem()->get2DDeviceContext()->BeginDraw();
+		
+		D2D1_RECT_F rect = D2D1::RectF(rc.left + 100.0f, rc.top + 100.0f, rc.right - 100.0f, rc.bottom - 100.0f);
+		GraphicsEngine::get()->getRenderSystem()->get2DDeviceContext()->DrawRectangle(D2D1::RectF(rc.left + 100.0f, rc.top + 100.0f, rc.right - 100.0f, rc.bottom - 100.0f), pBrush);
+		GraphicsEngine::get()->getRenderSystem()->get2DDeviceContext()->DrawText(L"Hello World", 11, textformat, &rect, pBrush);
+		GraphicsEngine::get()->getRenderSystem()->get2DDeviceContext()->EndDraw();
+		
+		pBrush->Release();
+		factory->Release();
+		textformat->Release();
 
 		//PRESENT
 		m_swap_chain->present(false);

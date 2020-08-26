@@ -1,6 +1,7 @@
 #pragma once
 #include <d3d11.h>
 #include <d3dcompiler.h>
+#include <d2d1_1.h>
 #include "DeviceContext.h"
 #include "Prerequisites.h"
 
@@ -17,6 +18,7 @@ public:
 	VertexShaderPtr createVertexShader(const void* shader_byte_code, size_t size_byte_code);
 	PixelShaderPtr createPixelShader(const void* shader_byte_code, size_t size_byte_code);
 	DeviceContextPtr getImmediateDeviceContext();
+	ID2D1DeviceContext* get2DDeviceContext();
 	void getVertexMeshLayoutShaderByteCodeAndSize(void** byte_code, size_t* size);
 	RenderSystem();
 	~RenderSystem();
@@ -28,10 +30,13 @@ public:
 	void setRasterizerState(bool cull_front);
 
 private:
-	ID3D11Device* m_d3d_device;
+	ID2D1Factory1* m_d2d_factory;
+	ID2D1Device* m_d2d_device;
+	ID2D1DeviceContext* m_d2d_context;
 	ID3D11RasterizerState* m_cull_front_state;
 	ID3D11RasterizerState* m_cull_back_state;
 	D3D_FEATURE_LEVEL m_feature_level;
+	ID3D11Device* m_d3d_device;
 	IDXGIDevice* m_dxgi_device;
 	IDXGIAdapter* m_dxgi_adapter;
 	IDXGIFactory* m_dxgi_factory;
