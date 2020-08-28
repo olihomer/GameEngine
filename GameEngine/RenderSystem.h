@@ -3,6 +3,7 @@
 #include <d3dcompiler.h>
 #include <d2d1_1.h>
 #include "DeviceContext.h"
+#include "Graphics2D.h"
 #include "Prerequisites.h"
 
 class RenderSystem
@@ -18,7 +19,7 @@ public:
 	VertexShaderPtr createVertexShader(const void* shader_byte_code, size_t size_byte_code);
 	PixelShaderPtr createPixelShader(const void* shader_byte_code, size_t size_byte_code);
 	DeviceContextPtr getImmediateDeviceContext();
-	ID2D1DeviceContext* get2DDeviceContext();
+	Graphics2DPtr getGraphics2D();
 	void getVertexMeshLayoutShaderByteCodeAndSize(void** byte_code, size_t* size);
 	RenderSystem();
 	~RenderSystem();
@@ -43,6 +44,7 @@ private:
 	IDXGIFactory* m_dxgi_factory;
 	ID3D11SamplerState* m_sampler_state;
 	DeviceContextPtr m_device_context_wrapper;
+	Graphics2DPtr m_graphics2D;
 	ID3DBlob* m_blob;
 	unsigned char m_mesh_layout_byte_code[1024];
 	size_t m_mesh_layout_size;

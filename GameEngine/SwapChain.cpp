@@ -139,7 +139,7 @@ SwapChain::SwapChain(HWND hwnd, UINT width, UINT height,RenderSystem* system)
 	}
 
 	// Bind depth stencil state
-	system->getImmediateDeviceContext()->m_device_context->OMSetDepthStencilState(m_pDSState, 1);
+	system->m_imm_device_context->OMSetDepthStencilState(m_pDSState, 1);
 
 	//Bind depth stencil to view
 

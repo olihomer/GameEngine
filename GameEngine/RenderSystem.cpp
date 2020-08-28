@@ -108,9 +108,9 @@ DeviceContextPtr RenderSystem::getImmediateDeviceContext()
 	return this->m_device_context_wrapper;
 }
 
-ID2D1DeviceContext* RenderSystem::get2DDeviceContext()
+Graphics2DPtr RenderSystem::getGraphics2D()
 {
-	return m_d2d_context;
+	return m_graphics2D;
 }
 
 void RenderSystem::getVertexMeshLayoutShaderByteCodeAndSize(void** byte_code, size_t* size)
@@ -194,6 +194,8 @@ RenderSystem::RenderSystem()
 	{
 		throw std::exception("Failed to Create D2D DeviceContext");
 	}
+
+	m_graphics2D = std::make_shared<Graphics2D>(m_d2d_context, this);
 
 	OutputDebugString("D2D DeviceContext Created ok\n");
 

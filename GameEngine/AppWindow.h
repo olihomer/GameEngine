@@ -10,7 +10,6 @@
 #include "Camera.h"
 
 
-
 class AppWindow: public Window, public InputListener
 {
 public:
@@ -19,7 +18,7 @@ public:
 	
 	virtual void onCreate() override;
 	virtual void onUpdate() override;
-	void Draw2DGraphics(RECT& rc);
+	void draw2DGraphics(RECT& rc);
 	virtual void onDestroy() override;
 
 	//Listener call backs for Input

@@ -16,6 +16,7 @@ class Texture;
 class TextureManager;
 class Mesh;
 class MeshManager;
+class Graphics2D;
 
 typedef std::shared_ptr<VertexBuffer> VertexBufferPtr;
 typedef std::shared_ptr<VertexShader> VertexShaderPtr;
@@ -27,3 +28,4 @@ typedef std::shared_ptr<DeviceContext> DeviceContextPtr;
 typedef std::shared_ptr<Resource> ResourcePtr;
 typedef std::shared_ptr<Texture> TexturePtr;
 typedef std::shared_ptr<Mesh> MeshPtr;
+typedef std::shared_ptr<Graphics2D> Graphics2DPtr;

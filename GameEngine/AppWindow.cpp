@@ -11,7 +11,6 @@
 #include "InputSystem.h"
 #include "Mesh.h"
 #include "Quaternion.h"
-#include <dwrite.h>
 
 #define wUP Vector3D(0,1,0)
 #define wX Vector3D(1,0,0)
@@ -47,6 +46,10 @@ void AppWindow::onCreate()
 	GraphicsEngine::get();
 	
 	// TESTING
+
+	// INIT 2D PLOTTING BITMAP
+
+	GraphicsEngine::get()->getRenderSystem()->getGraphics2D()->createBitmap(100, 100);
 
 	// INIT INPUT SYSTEM
 
@@ -126,7 +129,7 @@ void AppWindow::onUpdate()
 		drawMesh(m_sky_mesh, m_vertex_shader, m_skybox_pixel_shader, m_skybox_constant_buffer, m_sky,true);
 
 		//DRAW 2D GRAPHICS
-		Draw2DGraphics(rc);
+		draw2DGraphics(rc);
 
 		//PRESENT
 		m_swap_chain->present(false);
@@ -145,29 +148,6 @@ void AppWindow::onUpdate()
 	}
 }
 
-void AppWindow::Draw2DGraphics(RECT& rc)
-{
-	ID2D1SolidColorBrush* pBrush;
-
-	IDWriteFactory* factory;
-	DWriteCreateFactory(DWRITE_FACTORY_TYPE_SHARED, __uuidof(IDWriteFactory), (IUnknown**)&factory);
-	
-	IDWriteTextFormat* textformat;
-	factory->CreateTextFormat(L"Arial", NULL, DWRITE_FONT_WEIGHT_NORMAL, DWRITE_FONT_STYLE_NORMAL, DWRITE_FONT_STRETCH_NORMAL, 24, L"en-UK", &textformat);
-
-	GraphicsEngine::get()->getRenderSystem()->get2DDeviceContext()->CreateSolidColorBrush(D2D1::ColorF(D2D1::ColorF::BlueViolet), &pBrush);
-	GraphicsEngine::get()->getRenderSystem()->get2DDeviceContext()->BeginDraw();
-
-	D2D1_RECT_F rect = D2D1::RectF(rc.left + 100.0f, rc.top + 100.0f, rc.right - 100.0f, rc.bottom - 100.0f);
-	GraphicsEngine::get()->getRenderSystem()->get2DDeviceContext()->DrawRectangle(rect, pBrush);
-	GraphicsEngine::get()->getRenderSystem()->get2DDeviceContext()->DrawTextA(L"Hello World", 11, textformat, &rect, pBrush);
-	GraphicsEngine::get()->getRenderSystem()->get2DDeviceContext()->EndDraw();
-
-	pBrush->Release();
-	factory->Release();
-	textformat->Release();
-}
-	
 
 void AppWindow::onDestroy()
 {
@@ -279,14 +259,13 @@ void AppWindow::updateWorld()
 	cc.m_view = m_camera->getCameraTransform();
 	cc.m_camera_position = m_camera->getPosition();
 	cc.m_proj = m_camera->getPerspectiveTransform();
-	m_constant_buffer->update(GraphicsEngine::get()->getRenderSystem()->getImmediateDeviceContext(), &cc);
+	m_constant_buffer->update(&cc);
 
 	//DIFFERENT CB FOR SKYBOX
-
 	cc.m_world.setIdentity();
 	cc.m_world.setScale(Vector3D(100.0f, 100.0f, 100.0f));
 	cc.m_world.setTranslation(m_camera->getPosition());
-	m_skybox_constant_buffer->update(GraphicsEngine::get()->getRenderSystem()->getImmediateDeviceContext(), &cc);
+	m_skybox_constant_buffer->update(&cc);
 
 }
 
@@ -309,4 +288,18 @@ void AppWindow::drawMesh(const MeshPtr& mesh, const VertexShaderPtr& vs, const P
 	dc->setVertexBuffer(mesh->getVertexBuffer());
 	dc->setIndexBuffer(mesh->getIndexBuffer());
 	dc->drawIndexedTriangles(mesh->getIndexBuffer()->getSizeIndexList(), 0, 0);
+}
+
+
+void AppWindow::draw2DGraphics(RECT& rc)
+{
+	Graphics2DPtr g2D = GraphicsEngine::get()->getRenderSystem()->getGraphics2D();
+
+	g2D->drawRectangle(rc.left + 100.0f, rc.top + 100.0f, rc.right - 100.0f, rc.bottom - 100.0f, D3DCOLORVALUE{ 0.8f, 0.0f, 0.0f,1.0f }, 1.0f, false);
+	for (char i = 0; i < 100; i++)
+		g2D->plotBitmap(i, i, RGB(0,i,i));
+	g2D->updateBitmap();
+	g2D->drawBitmap(rc.left + 100.0f, rc.top + 100.0f, rc.right - 100.0f, rc.bottom - 100.0f);
+	g2D->drawText(L"Hello World", rc.left + 100.0f, rc.top + 100.0f, rc.right - 100.0f, rc.bottom - 100.0f, D3DCOLORVALUE{ 0.8f, 0.0f, 0.0f,1.0f }, 24);
+
 }

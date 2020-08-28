@@ -58,6 +58,9 @@
     <Filter Include="GameEngine\GraphicsEngine\RenderSystem\DepthBuffer">
       <UniqueIdentifier>{1b2db730-46b1-4eeb-acfb-e769573f8b2e}</UniqueIdentifier>
     </Filter>
+    <Filter Include="GameEngine\GraphicsEngine\RenderSystem\Graphics2D">
+      <UniqueIdentifier>{a232037e-0964-4041-99d0-658c40eeac1c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -119,6 +122,9 @@
     </ClCompile>
     <ClCompile Include="MeshManager.cpp">
       <Filter>GameEngine\GraphicsEngine\ResourceManager\MeshManager</Filter>
+    </ClCompile>
+    <ClCompile Include="Graphics2D.cpp">
+      <Filter>GameEngine\GraphicsEngine\RenderSystem\Graphics2D</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -208,6 +214,9 @@
     </ClInclude>
     <ClInclude Include="Quaternion.h">
       <Filter>GameEngine\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics2D.h">
+      <Filter>GameEngine\GraphicsEngine\RenderSystem\Graphics2D</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
