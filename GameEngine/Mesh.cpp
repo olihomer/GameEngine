@@ -100,9 +100,11 @@ Mesh::Mesh(BGRA* bitmap, int width, int height, float horiz_scale, float vert_sc
 		for (int i = 0; i < width; i++)
 		{
 			//Create vertex buffer from bitmap points
+			BGRA col = bitmap[j * width + i];
 			float vx = i * horiz_scale;
-			float vy = bitmap[j * width + i].a*vert_scale;
-			float vz = j * horiz_scale;
+			float vy = col.a*vert_scale;
+			float vz = -j * horiz_scale;
+			
 
 			v1 = v2 = v3 = v4 = Vector3D(0, 0, 0);
 
@@ -120,8 +122,8 @@ Mesh::Mesh(BGRA* bitmap, int width, int height, float horiz_scale, float vert_sc
 			n4 = Vector3D::cross(v3, v4);
 			norm = n1 + n2 + n3 + n4;
 			norm.normalize();
-
-			VertexMesh vertex(Vector3D(vx, vy, vz), Vector2D(i, j), norm);
+			
+			VertexMesh vertex(Vector3D(vx, vy, vz), Vector2D((float)i, (float)j), norm,Vector4D((float)col.r/255,(float)col.g/255,(float)col.b/255,1.0f));
 			list_vertices.push_back(vertex);
 
 			//Create index buffer = pair of triangles for each square

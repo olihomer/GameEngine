@@ -315,10 +315,10 @@ void RenderSystem::initRasterizerState()
 	}
 
 	desc = {};
-	desc.CullMode = D3D11_CULL_NONE;
+	desc.CullMode = D3D11_CULL_BACK;
 	desc.DepthClipEnable = true;
 	desc.FillMode = D3D11_FILL_SOLID;
-
+	
 	hr = m_d3d_device->CreateRasterizerState(&desc, &m_cull_back_state);
 	if (FAILED(hr))
 	{

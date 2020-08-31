@@ -55,7 +55,7 @@ void AppWindow::onCreate()
 	// TESTING
 
 	CreateLandscape();
-	m_landscape = engine->getMeshManager()->createMeshFromBitmap(engine->getRenderSystem()->getGraphics2D()->getBitmap(), land_width, land_height, 1, 0.1f);
+	m_landscape = engine->getMeshManager()->createMeshFromBitmap(engine->getRenderSystem()->getGraphics2D()->getBitmap(), land_width, land_height, 1, 0.15f);
 
 	// INIT INPUT SYSTEM
 
@@ -103,12 +103,12 @@ void AppWindow::onCreate()
 	
 	// CREATE CAMERA AND LIGHTS
 
-	Vector3D pos = Vector3D(0,20.0f, -2.0f);
-	Vector3D lookat = Vector3D(0, 0, 0);
+	Vector3D pos = Vector3D(100.0f,20.0f, -100.0f);
+	Vector3D lookat = Vector3D(100.0f, 0.0f, 0.0f);
 	Vector3D up= Vector3D(0, 1, 0);
 	m_camera = new Camera(pos,lookat,up, 1.0f, 0.1f, 100.0f, 90);
 
-	m_light_position = Vector3D(1, 1, 1);
+	m_light_position = Vector3D(0.2f, 1, 0.2f);
 	
 }
 
@@ -116,7 +116,6 @@ void AppWindow::CreateLandscape()
 {
 	Perlin p;
 	float f, fi, fj,r,g,b;
-	float min, max;
 	float water = -0.1f;
 	float rock = 0.25f;
 	BYTE h;
@@ -129,13 +128,13 @@ void AppWindow::CreateLandscape()
 		{
 			fi = i / 40.0f;
 			fj = j / 40.0f;
-			f = p.getNoise(fi, fj) + 0.5 * p.getNoise(i / 20.0f, j / 20.0f) + 0.25 * p.getNoise(i / 10.0f, j / 10.0f) + 0.1 * p.getNoise(i / 5.0f, j / 5.0f);
+			f = p.getNoise(fi, fj) + 0.5f * p.getNoise(i / 20.0f, j / 20.0f) + 0.25f * p.getNoise(i / 10.0f, j / 10.0f) + 0.1f * p.getNoise(i / 5.0f, j / 5.0f);
 			
 			h = (BYTE)(((f + 1.0f) / 2.0f) * 255.0f);
 					
 			if (f <= water)
 			{
-				c = RGBA(0, 0, 255, h);
+				c = RGBA(0, 0, 255, 110);
 			}
 			else
 			{
@@ -146,11 +145,12 @@ void AppWindow::CreateLandscape()
 				}
 				else
 				{
+					r = 139.0f;
 					g = 69.0f + ((f - rock) / 0.4f) * 150.0f;
 					b= 19.0f + ((f - rock) / 0.4f) * 200.0f;
 					if (g > 255)g = 255;
 					if (b > 255)b = 255;
-					c = RGBA(139, g, b, h);
+					c = RGBA(r, g, b, h);
 				}
 			}
 			GraphicsEngine::get()->getRenderSystem()->getGraphics2D()->plotBitmap(xplot, yplot, c);
@@ -185,7 +185,7 @@ void AppWindow::onUpdate()
 		drawMesh(m_sky_mesh, m_vertex_shader, m_skybox_pixel_shader, m_skybox_constant_buffer, m_sky,true);
 
 		//DRAW 2D GRAPHICS
-		draw2DGraphics(rc);
+		//draw2DGraphics(rc);
 
 		//PRESENT
 		m_swap_chain->present(false);
@@ -339,7 +339,7 @@ void AppWindow::drawMesh(const MeshPtr& mesh, const VertexShaderPtr& vs, const P
 	dc->setVertexShader(vs);
 	dc->setPixelShader(ps);
 		
-	dc->setTexture(ps, tex);
+	dc->setTexture(vs, tex);
 	dc->setTexture(ps, tex);
 
 	dc->setVertexBuffer(mesh->getVertexBuffer());

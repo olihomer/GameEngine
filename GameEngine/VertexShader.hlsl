@@ -3,6 +3,7 @@ struct VS_INPUT
 	float4 pos0: POSITION;
 	float2 texcoord: TEXCOORD0;
 	float3 normal: NORMAL0;
+	float4 color: COLOR0;
 };
 
 struct VS_OUTPUT
@@ -11,6 +12,7 @@ struct VS_OUTPUT
 	float2 texcoord: TEXCOORD0;
 	float3 normal: NORMAL0;
 	float3 direction_to_camera: TEXCOORD1;
+	float4 color:COLOR0;
 };
 
 cbuffer constant: register(b0)
@@ -36,9 +38,9 @@ VS_OUTPUT main(VS_INPUT input)
 
 	//SCREEN SPACE
 	output.pos = mul(output.pos, m_proj);
-
 	output.texcoord = input.texcoord;
 	output.normal = input.normal;
+	output.color = input.color;
 		
 	return output;
 }

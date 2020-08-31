@@ -7,6 +7,7 @@ struct PS_INPUT
 	float2 texcoord: TEXCOORD0;
 	float3 normal: NORMAL0;
 	float3 direction_to_camera: TEXCOORD1;
+	float4 color:COLOR0;
 };
 
 cbuffer constant:  register(b0)
@@ -20,8 +21,6 @@ cbuffer constant:  register(b0)
 
 float4 main(PS_INPUT input) : SV_TARGET
 {
-	//return Texture.Sample(TextureSampler, input.texcoord);
-
 	//AMBIENT LIGHT
 	
 	float ka = 0.2;  //ambient reflection
@@ -47,8 +46,11 @@ float4 main(PS_INPUT input) : SV_TARGET
 
 	float specular_light = 0;
 
-	float3 total_light = ambient_light+diffuse_light+specular_light;
+	float3 total_light=ambient_light + diffuse_light + specular_light;
+	float3 textured_light = total_light * Texture.Sample(TextureSampler, input.texcoord);
 
-	return float4(total_light * Texture.Sample(TextureSampler, input.texcoord), 1.0);// *Texture.Sample(TextureSampler, input.texcoord);
+	float4 f4_light = float4(textured_light,1.0);
+	
+	return input.color*f4_light;
 
 }
