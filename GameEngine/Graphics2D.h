@@ -5,14 +5,15 @@
 
 struct BGRA
 {
-	BYTE a;
 	BYTE b;
 	BYTE g;
 	BYTE r;
+	BYTE a;
 };
 
 #undef RGB
 #define RGB(r,g,b) BGRA{(BYTE)b,(BYTE)g,(BYTE)r,0}
+#define RGBA(r,g,b,a) BGRA{(BYTE)b,(BYTE)g,(BYTE)r,(BYTE)a}
 
 class Graphics2D
 {
@@ -24,6 +25,7 @@ public:
 	void drawText(const WCHAR* string, float x1, float y1, float x2, float y2, D3DCOLORVALUE color, int size);
 	void setFont(const WCHAR* string);
 	void createBitmap(unsigned int x, unsigned int y);
+	BGRA* getBitmap();
 	void beginDraw();
 	void endDraw();
 	void plotBitmap(unsigned int x, unsigned int y, BGRA color);

@@ -37,17 +37,18 @@ float4 main(PS_INPUT input) : SV_TARGET
 
 	//SPECULAR LIGHT
 
-	float ks = 1.0; //specular reflection
+	/*float ks = 1.0; //specular reflection
 	float3 is = float3(1.0, 1.0, 1.0); //specular light source
 	float3 reflected_light = reflect(m_light_direction.xyz, input.normal);
 	float shininess = 200.0;
 	float amount_specular_light = pow(max(0.0, dot(reflected_light,input.direction_to_camera)),shininess);
 
-	float specular_light = ks * amount_specular_light * is;
+	float specular_light = ks * amount_specular_light * is;*/
+
+	float specular_light = 0;
 
 	float3 total_light = ambient_light+diffuse_light+specular_light;
 
-	return float4(total_light, 1.0);// *Texture.Sample(TextureSampler, input.texcoord);
-
+	return float4(total_light * Texture.Sample(TextureSampler, input.texcoord), 1.0);// *Texture.Sample(TextureSampler, input.texcoord);
 
 }

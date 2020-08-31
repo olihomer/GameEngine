@@ -10,5 +10,6 @@ public:
 	TexturePtr createTextureFromFile(const wchar_t* filepath);
 protected:
 	virtual Resource* createResourceFromFileConcrete(const wchar_t* file_path);
+	virtual Resource* createResourceFromBitmapConcrete(void* bitmap, int width, int height, float horiz_scale, float vert_scale);
 };
 

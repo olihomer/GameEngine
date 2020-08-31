@@ -31,3 +31,8 @@ Resource* TextureManager::createResourceFromFileConcrete(const wchar_t* file_pat
 	return tex;
 
 }
+
+Resource* TextureManager::createResourceFromBitmapConcrete(void* bitmap, int width, int height, float horiz_scale, float vert_scale)
+{
+	return nullptr;
+}

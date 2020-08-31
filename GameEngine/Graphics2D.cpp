@@ -97,11 +97,16 @@ void Graphics2D::createBitmap(unsigned int x, unsigned int y)
 	for (unsigned int j = 0; j < y; j++)
 		for (unsigned int i = 0; i < x; i++)
 		{
-			m_plot_target[j * x + i] = BGRA{ (BYTE)j,0,(BYTE)i,0 };
+			m_plot_target[j * x + i] = BGRA{};
 		}
 
 	m_bitmap->CopyFromMemory(&rect, m_plot_target, x*sizeof(BGRA));
 
+}
+
+BGRA* Graphics2D::getBitmap()
+{
+	return m_plot_target;
 }
 
 void Graphics2D::beginDraw()

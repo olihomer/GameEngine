@@ -65,4 +65,10 @@ public:
 		this->m_y = v1.m_y * v2.m_x - v1.m_x * v2.m_y;
 		
 	}
+
+	static float dot(Vector2D v1, Vector2D v2)
+	{
+		float d = v1.m_x * v2.m_x + v1.m_y * v2.m_y;
+		return d;
+	}
 };

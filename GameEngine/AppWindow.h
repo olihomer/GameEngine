@@ -17,6 +17,7 @@ public:
 	// Inherited via Window
 	
 	virtual void onCreate() override;
+	void CreateLandscape();
 	virtual void onUpdate() override;
 	void draw2DGraphics(RECT& rc);
 	virtual void onDestroy() override;
@@ -58,6 +59,7 @@ private:
 	TexturePtr m_wood;
 	TexturePtr m_sky;
 	MeshPtr m_mesh;
+	MeshPtr m_landscape;
 	MeshPtr m_sky_mesh;
 };
 

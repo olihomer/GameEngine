@@ -218,6 +218,9 @@
     <ClInclude Include="Graphics2D.h">
       <Filter>GameEngine\GraphicsEngine\RenderSystem\Graphics2D</Filter>
     </ClInclude>
+    <ClInclude Include="Perlin.h">
+      <Filter>GameEngine\Math</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="PixelShader.hlsl" />

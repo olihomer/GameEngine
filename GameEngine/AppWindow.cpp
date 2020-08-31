@@ -11,6 +11,7 @@
 #include "InputSystem.h"
 #include "Mesh.h"
 #include "Quaternion.h"
+#include "Perlin.h"
 
 #define wUP Vector3D(0,1,0)
 #define wX Vector3D(1,0,0)
@@ -43,13 +44,18 @@ void AppWindow::onCreate()
 	int width = rc.right - rc.left;
 	int height = rc.bottom - rc.top;
 	
-	GraphicsEngine::get();
+	GraphicsEngine* engine=GraphicsEngine::get();
 	
-	// TESTING
-
 	// INIT 2D PLOTTING BITMAP
 
-	GraphicsEngine::get()->getRenderSystem()->getGraphics2D()->createBitmap(100, 100);
+	int land_width = 200;
+	int land_height = 200;
+	engine->getRenderSystem()->getGraphics2D()->createBitmap(200, 200);
+
+	// TESTING
+
+	CreateLandscape();
+	m_landscape = engine->getMeshManager()->createMeshFromBitmap(engine->getRenderSystem()->getGraphics2D()->getBitmap(), land_width, land_height, 1, 0.1f);
 
 	// INIT INPUT SYSTEM
 
@@ -59,17 +65,17 @@ void AppWindow::onCreate()
 
 	//INIT TEXTURES
 
-	m_wood = GraphicsEngine::get()->getTextureManager()->createTextureFromFile(L"Assets\\Textures\\wood.jpg");
-	m_sky = GraphicsEngine::get()->getTextureManager()->createTextureFromFile(L"Assets\\Textures\\sky.jpg");
+	m_wood = engine->getTextureManager()->createTextureFromFile(L"Assets\\Textures\\wood.jpg");
+	m_sky = engine->getTextureManager()->createTextureFromFile(L"Assets\\Textures\\sky.jpg");
 
 	//INIT MESHES
 
-	m_mesh = GraphicsEngine::get()->getMeshManager()->createMeshFromFile(L"Assets\\Meshes\\statue.obj");
-	m_sky_mesh = GraphicsEngine::get()->getMeshManager()->createMeshFromFile(L"Assets\\Meshes\\sphere.obj");
+	m_mesh = engine->getMeshManager()->createMeshFromFile(L"Assets\\Meshes\\statue.obj");
+	m_sky_mesh = engine->getMeshManager()->createMeshFromFile(L"Assets\\Meshes\\sphere.obj");
 
 	//INIT SWAP CHAIN
 
-	m_swap_chain = GraphicsEngine::get()->getRenderSystem()->createSwapChain(this->m_hwnd, width, height);
+	m_swap_chain = engine->getRenderSystem()->createSwapChain(this->m_hwnd, width, height);
 	if (this->m_hwnd == nullptr)OutputDebugString("Warning: m_hwnd is null\n");
 
 	// PREPARE SHADERS
@@ -77,33 +83,82 @@ void AppWindow::onCreate()
 	void* shader_byte_code = nullptr;
 	size_t size_shader = 0;
 
-	GraphicsEngine::get()->getRenderSystem()->compileVertexShader(L"VertexShader.hlsl", "main", &shader_byte_code, &size_shader);
-	m_vertex_shader = GraphicsEngine::get()->getRenderSystem()->createVertexShader(shader_byte_code, size_shader);
-	GraphicsEngine::get()->getRenderSystem()->releaseCompiledShader();
+	engine->getRenderSystem()->compileVertexShader(L"VertexShader.hlsl", "main", &shader_byte_code, &size_shader);
+	m_vertex_shader = engine->getRenderSystem()->createVertexShader(shader_byte_code, size_shader);
+	engine->getRenderSystem()->releaseCompiledShader();
 		
-	GraphicsEngine::get()->getRenderSystem()->compilePixelShader(L"PixelShader.hlsl", "main", &shader_byte_code, &size_shader);
+	engine->getRenderSystem()->compilePixelShader(L"PixelShader.hlsl", "main", &shader_byte_code, &size_shader);
 	m_pixel_shader = GraphicsEngine::get()->getRenderSystem()->createPixelShader(shader_byte_code, size_shader);
-	GraphicsEngine::get()->getRenderSystem()->releaseCompiledShader();
+	engine->getRenderSystem()->releaseCompiledShader();
 
-	GraphicsEngine::get()->getRenderSystem()->compilePixelShader(L"SkyboxPS.hlsl", "main", &shader_byte_code, &size_shader);
-	m_skybox_pixel_shader = GraphicsEngine::get()->getRenderSystem()->createPixelShader(shader_byte_code, size_shader);
-	GraphicsEngine::get()->getRenderSystem()->releaseCompiledShader();
+	engine->getRenderSystem()->compilePixelShader(L"SkyboxPS.hlsl", "main", &shader_byte_code, &size_shader);
+	m_skybox_pixel_shader = engine->getRenderSystem()->createPixelShader(shader_byte_code, size_shader);
+	engine->getRenderSystem()->releaseCompiledShader();
 
 	// PREPARE CONSTANT BUFFERS
 	
 	constant cc;
-	m_constant_buffer = GraphicsEngine::get()->getRenderSystem()->createConstantBuffer(&cc, sizeof(constant));
-	m_skybox_constant_buffer = GraphicsEngine::get()->getRenderSystem()->createConstantBuffer(&cc, sizeof(constant));
+	m_constant_buffer = engine->getRenderSystem()->createConstantBuffer(&cc, sizeof(constant));
+	m_skybox_constant_buffer = engine->getRenderSystem()->createConstantBuffer(&cc, sizeof(constant));
 	
 	// CREATE CAMERA AND LIGHTS
 
-	Vector3D pos = Vector3D(0, 0.5f, -2);
+	Vector3D pos = Vector3D(0,20.0f, -2.0f);
 	Vector3D lookat = Vector3D(0, 0, 0);
 	Vector3D up= Vector3D(0, 1, 0);
 	m_camera = new Camera(pos,lookat,up, 1.0f, 0.1f, 100.0f, 90);
 
 	m_light_position = Vector3D(1, 1, 1);
 	
+}
+
+void AppWindow::CreateLandscape()
+{
+	Perlin p;
+	float f, fi, fj,r,g,b;
+	float min, max;
+	float water = -0.1f;
+	float rock = 0.25f;
+	BYTE h;
+	BGRA c;
+	
+	unsigned int xplot = 0, yplot = 0;
+	for (int j = 0; j < 200; j++)
+	{
+		for (int i = 0; i < 200; i++)
+		{
+			fi = i / 40.0f;
+			fj = j / 40.0f;
+			f = p.getNoise(fi, fj) + 0.5 * p.getNoise(i / 20.0f, j / 20.0f) + 0.25 * p.getNoise(i / 10.0f, j / 10.0f) + 0.1 * p.getNoise(i / 5.0f, j / 5.0f);
+			
+			h = (BYTE)(((f + 1.0f) / 2.0f) * 255.0f);
+					
+			if (f <= water)
+			{
+				c = RGBA(0, 0, 255, h);
+			}
+			else
+			{
+				if (f <= rock)
+				{
+					f = ((f - water) / 0.3f) * 100.0f;
+					c = RGBA(f, 255, 19, h);
+				}
+				else
+				{
+					g = 69.0f + ((f - rock) / 0.4f) * 150.0f;
+					b= 19.0f + ((f - rock) / 0.4f) * 200.0f;
+					if (g > 255)g = 255;
+					if (b > 255)b = 255;
+					c = RGBA(139, g, b, h);
+				}
+			}
+			GraphicsEngine::get()->getRenderSystem()->getGraphics2D()->plotBitmap(xplot, yplot, c);
+			xplot++;
+		}
+		yplot++;
+		xplot = 0;
+	}
 }
 
 void AppWindow::onUpdate()
@@ -125,7 +180,8 @@ void AppWindow::onUpdate()
 		updateWorld();
 
 		//DRAW 3D OBJECTS
-		drawMesh(m_mesh, m_vertex_shader, m_pixel_shader, m_constant_buffer, m_wood,false);
+		//drawMesh(m_mesh, m_vertex_shader, m_pixel_shader, m_constant_buffer, m_wood,false);
+		drawMesh(m_landscape, m_vertex_shader, m_pixel_shader, m_constant_buffer, m_wood, false);
 		drawMesh(m_sky_mesh, m_vertex_shader, m_skybox_pixel_shader, m_skybox_constant_buffer, m_sky,true);
 
 		//DRAW 2D GRAPHICS
@@ -169,13 +225,13 @@ void AppWindow::onKeyDown(int key)
 		m_camera->Roll(-1.0f * m_delta_time);
 
 	if (key == 'A')
-		m_camera->Translate(-1.0f * m_delta_time,m_camera->getRight());
+		m_camera->Translate(-30.0f * m_delta_time,m_camera->getRight());
 	if (key == 'D')
-		m_camera->Translate(1.0f * m_delta_time, m_camera->getRight());
+		m_camera->Translate(30.0f * m_delta_time, m_camera->getRight());
 	if (key == 'S')
-		m_camera->Translate(-2.0f * m_delta_time, m_camera->getForward());
+		m_camera->Translate(-30.0f * m_delta_time, m_camera->getForward());
 	if (key == 'W')
-		m_camera->Translate(2.0f * m_delta_time, m_camera->getForward());
+		m_camera->Translate(30.0f * m_delta_time, m_camera->getForward());
 
 	if (key == VK_ESCAPE)this->onDestroy();
 }
@@ -258,6 +314,7 @@ void AppWindow::updateWorld()
 	//LOAD CONSTANT BUFFER WITH CAMERA TRANSFORMS AND POSITION
 	cc.m_view = m_camera->getCameraTransform();
 	cc.m_camera_position = m_camera->getPosition();
+	
 	cc.m_proj = m_camera->getPerspectiveTransform();
 	m_constant_buffer->update(&cc);
 
@@ -296,10 +353,8 @@ void AppWindow::draw2DGraphics(RECT& rc)
 	Graphics2DPtr g2D = GraphicsEngine::get()->getRenderSystem()->getGraphics2D();
 
 	g2D->drawRectangle(rc.left + 100.0f, rc.top + 100.0f, rc.right - 100.0f, rc.bottom - 100.0f, D3DCOLORVALUE{ 0.8f, 0.0f, 0.0f,1.0f }, 1.0f, false);
-	for (char i = 0; i < 100; i++)
-		g2D->plotBitmap(i, i, RGB(0,i,i));
 	g2D->updateBitmap();
-	g2D->drawBitmap(rc.left + 100.0f, rc.top + 100.0f, rc.right - 100.0f, rc.bottom - 100.0f);
+	g2D->drawBitmap(rc.left + 100.0f, rc.top + 100.0f, rc.left+750.0f, rc.top+750.0f);
 	g2D->drawText(L"Hello World", rc.left + 100.0f, rc.top + 100.0f, rc.right - 100.0f, rc.bottom - 100.0f, D3DCOLORVALUE{ 0.8f, 0.0f, 0.0f,1.0f }, 24);
 
 }
