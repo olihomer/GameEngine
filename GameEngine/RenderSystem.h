@@ -6,6 +6,10 @@
 #include "Graphics2D.h"
 #include "Prerequisites.h"
 
+constexpr int CULL_BACK = 0;
+constexpr int CULL_FRONT = 1;
+constexpr int CULL_WIREFRAME = 2;
+
 class RenderSystem
 {
 public:
@@ -28,7 +32,7 @@ public:
 	bool compilePixelShader(const wchar_t* file_name, const char* entry_point_name, void** shader_byte_code, size_t* byte_code_size);
 
 	void releaseCompiledShader();
-	void setRasterizerState(bool cull_front);
+	void setRasterizerState(int cullmode);
 
 private:
 	ID2D1Factory1* m_d2d_factory;
@@ -36,6 +40,7 @@ private:
 	ID2D1DeviceContext* m_d2d_context;
 	ID3D11RasterizerState* m_cull_front_state;
 	ID3D11RasterizerState* m_cull_back_state;
+	ID3D11RasterizerState* m_wireframe_state;
 	D3D_FEATURE_LEVEL m_feature_level;
 	ID3D11Device* m_d3d_device;
 	ID3D11DeviceContext* m_imm_device_context;

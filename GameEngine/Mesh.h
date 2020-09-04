@@ -9,7 +9,7 @@ class Mesh :
 {
 public:
     Mesh(const wchar_t*);
-    Mesh(BGRA* bitmap,int width, int height, float horiz_scale, float vert_scale);
+    Mesh(BGRA* bitmap,int width, int height, float horiz_scale, float vert_scale, int sample_scale);
     ~Mesh();
     const VertexBufferPtr& getVertexBuffer() { return m_vertex_buffer; }
     const IndexBufferPtr& getIndexBuffer() { return m_index_buffer; }

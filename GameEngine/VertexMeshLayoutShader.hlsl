@@ -4,6 +4,8 @@ struct VS_INPUT
 	float2 texcoord: TEXCOORD0;
 	float3 normal: NORMAL0;
 	float4 color: COLOR0;
+	float tex: TEXCOORD2;
+
 };
 
 struct VS_OUTPUT
@@ -12,6 +14,7 @@ struct VS_OUTPUT
 	float2 texcoord: TEXCOORD0;
 	float3 normal: NORMAL0;
 	float4 color: COLOR0;
+	float tex: TEXCOORD2;
 };
 
 VS_OUTPUT main(VS_INPUT input)

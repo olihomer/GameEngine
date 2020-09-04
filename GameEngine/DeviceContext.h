@@ -28,8 +28,8 @@ public:
 	void setPixelShader(const PixelShaderPtr& pixel_shader);
 	void setSampler(ID3D11SamplerState* sampler);
 	
-	void setTexture(const VertexShaderPtr& vertex_shader, const TexturePtr& texture);
-	void setTexture(const PixelShaderPtr& pixel_shader, const TexturePtr& texture);
+	void setTexture(const VertexShaderPtr& vertex_shader, TexturePtr* texture,int num_textures);
+	void setTexture(const PixelShaderPtr& pixel_shader, TexturePtr* texture,int num_textures);
 
 private:
 	ID3D11DeviceContext* m_device_context;

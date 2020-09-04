@@ -7,11 +7,11 @@ constexpr float ROOT2 = 1.4142136f;
 class Perlin
 {
 public:
-	Perlin();
+	Perlin(bool randomize=true);
 	float rand01();
 	
-	static const int xmax = 100;
-	static const int ymax = 100;
+	static const int xmax = 200;
+	static const int ymax = 200;
 
 	Vector2D gradients[xmax][ymax];
 	float getNoise(float x, float y);
@@ -20,12 +20,12 @@ public:
 };
 
 
-Perlin::Perlin()
+Perlin::Perlin(bool randomize)
 {
 	OutputDebugString("Entering Perlin Constructor\n");
 
 	//SET RANDOM SEED
-	//srand((unsigned int)time(NULL));
+	if(randomize)srand((unsigned int)time(NULL));
 
 	//PREPARE GRADIENT VECTORS AT INTEGER NODES
 	for (int i = 0; i < xmax; i++)

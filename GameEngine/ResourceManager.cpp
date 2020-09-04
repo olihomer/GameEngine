@@ -37,9 +37,9 @@ ResourcePtr ResourceManager::createResourceFromFile(const wchar_t* file_path)
 	return nullptr;
 }
 
-ResourcePtr ResourceManager::createResourceFromBitmap(void* bitmap, int width, int height, float horiz_scale, float vert_scale)
+ResourcePtr ResourceManager::createResourceFromBitmap(void* bitmap, int width, int height, float horiz_scale, float vert_scale,int sample_scale)
 {
-	Resource* raw_res = this->createResourceFromBitmapConcrete(bitmap, width, height, horiz_scale, vert_scale);
+	Resource* raw_res = this->createResourceFromBitmapConcrete(bitmap, width, height, horiz_scale, vert_scale, sample_scale);
 
 	if (raw_res)
 	{

@@ -17,7 +17,7 @@ public:
 	// Inherited via Window
 	
 	virtual void onCreate() override;
-	void CreateLandscape();
+	void CreateLandscape(int width, int height);
 	virtual void onUpdate() override;
 	void draw2DGraphics(RECT& rc);
 	virtual void onDestroy() override;
@@ -35,7 +35,7 @@ public:
 	virtual void onKillFocus() override;
 
 	void updateWorld();
-	void drawMesh(const MeshPtr& mesh, const VertexShaderPtr& vs, const PixelShaderPtr& ps, const ConstantBufferPtr& cb, const TexturePtr& tex, bool cullfront);
+	void drawMesh(const MeshPtr& mesh, const VertexShaderPtr& vs, const PixelShaderPtr& ps, const ConstantBufferPtr& cb, TexturePtr *tex, int num_textures, int cullmode);
 
 private:
 	SwapChainPtr m_swap_chain;
@@ -50,16 +50,19 @@ private:
 	INT64 m_old_delta;
 	INT64 m_new_delta;
 	float m_delta_time;
+	float m_time=0;
 	float m_light_angle;
 	Vector3D m_light_position;
 	float m_trans_x;
 	float m_rot_x;
 	float m_rot_y;
 	float m_aspect_ratio;	
-	TexturePtr m_wood;
+	TexturePtr m_brick;
 	TexturePtr m_sky;
+	TexturePtr m_tex_array[10];
 	MeshPtr m_mesh;
 	MeshPtr m_landscape;
-	MeshPtr m_sky_mesh;
+	MeshPtr m_sky_mesh;	
+	bool m_wireframe = false;
 };
 

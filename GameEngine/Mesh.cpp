@@ -82,15 +82,16 @@ Mesh::Mesh(const wchar_t* full_path) :Resource(full_path)
 }
 
 
-Mesh::Mesh(BGRA* bitmap, int width, int height, float horiz_scale, float vert_scale) :Resource(nullptr)
+Mesh::Mesh(BGRA* bitmap, int width, int height, float horiz_scale, float vert_scale, int sample_scale) :Resource(nullptr)
 {
-
 	OutputDebugString("Entering Mesh(BGRA*)\n");
 
 	std::vector<VertexMesh> list_vertices;
 	std::vector<unsigned int> list_indices;
 	Vector3D v1, v2, v3, v4;
 	Vector3D n1, n2, n3, n4,norm;
+	float miny = 999;
+	float maxy = 0;
 
 	list_vertices.reserve(width*height); //one vertex per pixel in bitmap
 	list_indices.reserve((width-1)*(height-1)*6); //six indices (two triangles) per square
@@ -102,17 +103,20 @@ Mesh::Mesh(BGRA* bitmap, int width, int height, float horiz_scale, float vert_sc
 			//Create vertex buffer from bitmap points
 			BGRA col = bitmap[j * width + i];
 			float vx = i * horiz_scale;
-			float vy = col.a*vert_scale;
+			float vy = (float)(col.a * vert_scale);
 			float vz = -j * horiz_scale;
 			
+			if (vy < miny)miny = vy;
+			if (vy > maxy)maxy = vy;
 
 			v1 = v2 = v3 = v4 = Vector3D(0, 0, 0);
 
 			// get four vectors (pointing towards current vertex) to compute face normals
-			if (j > 0)v1 = Vector3D(0, (bitmap[j * width + i].a * vert_scale) - (bitmap[(j - 1) * width + i].a * vert_scale),1);
-			if(i< width - 1)v2 = Vector3D(1, (bitmap[j * width + i].a * vert_scale) - (bitmap[(j) * width + (i+1)].a * vert_scale),0);
-			if (j < height - 1)v3 = Vector3D(0, (bitmap[j * width + i].a * vert_scale) - (bitmap[(j+1)*width + (i)].a * vert_scale),-1);
-			if (i > 0)v4 = Vector3D(0, (bitmap[j * width + i].a * vert_scale) - (bitmap[(j)*width + (i - 1)].a * vert_scale),0);
+			if (j > 0)v1 = Vector3D(0, ((float)bitmap[j * width + i].a * vert_scale) - ((float)bitmap[(j - 1) * width + i].a * vert_scale),1);
+			if(i < width - 1)v2 = Vector3D(1, ((float)bitmap[j * width + i].a * vert_scale) - ((float)bitmap[j * width + (i +1)].a * vert_scale),0);
+			if (j < height - 1)v3 = Vector3D(0, ((float)bitmap[j * width + i].a * vert_scale) - ((float)bitmap[(j +1)*width + i ].a * vert_scale),-1);
+			if (i > 0)v4 = Vector3D(-1, ((float)bitmap[j * width + i].a * vert_scale) - ((float)bitmap[j * width + (i - 1)].a * vert_scale),0);
+			
 
 			//calculate four face normals
 
@@ -121,9 +125,14 @@ Mesh::Mesh(BGRA* bitmap, int width, int height, float horiz_scale, float vert_sc
 			n3 = Vector3D::cross(v2, v3);
 			n4 = Vector3D::cross(v3, v4);
 			norm = n1 + n2 + n3 + n4;
+			
+			if((i==width-1&&j==height-1) || norm.magnitude() == 0)norm=Vector3D(0, 1, 0); //edge cases
+			
 			norm.normalize();
 			
-			VertexMesh vertex(Vector3D(vx, vy, vz), Vector2D((float)i, (float)j), norm,Vector4D((float)col.r/255,(float)col.g/255,(float)col.b/255,1.0f));
+			float tex = col.r;
+
+			VertexMesh vertex(Vector3D(vx, vy, vz), Vector2D((float)i, (float)j), norm, Vector4D(), (unsigned int)tex);
 			list_vertices.push_back(vertex);
 
 			//Create index buffer = pair of triangles for each square
@@ -150,6 +159,7 @@ Mesh::Mesh(BGRA* bitmap, int width, int height, float horiz_scale, float vert_sc
 	m_index_buffer = GraphicsEngine::get()->getRenderSystem()->createIndexBuffer(&list_indices[0], (UINT)list_indices.size());
 	
 	OutputDebugString("Mesh from bitmap created ok\n");
+	std::cout << "Min: " << miny << " Max:" << maxy << std::endl;
 }
 
 Mesh::~Mesh()

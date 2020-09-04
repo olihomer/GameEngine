@@ -289,16 +289,21 @@ void RenderSystem::releaseCompiledShader()
 	if (m_blob)m_blob->Release();
 }
 
-void RenderSystem::setRasterizerState(bool cull_front)
+void RenderSystem::setRasterizerState(int cullmode)
 {
-	if (cull_front)
+	switch (cullmode)
 	{
-		m_imm_device_context->RSSetState(m_cull_front_state);
-	}
-	else
-	{
+	case CULL_BACK:
 		m_imm_device_context->RSSetState(m_cull_back_state);
+		break;
+	case CULL_FRONT:
+		m_imm_device_context->RSSetState(m_cull_front_state);
+		break;
+	case CULL_WIREFRAME:
+		m_imm_device_context->RSSetState(m_wireframe_state);
+		break;
 	}
+
 }
 
 void RenderSystem::initRasterizerState()
@@ -320,6 +325,19 @@ void RenderSystem::initRasterizerState()
 	desc.FillMode = D3D11_FILL_SOLID;
 	
 	hr = m_d3d_device->CreateRasterizerState(&desc, &m_cull_back_state);
+	if (FAILED(hr))
+	{
+		throw std::exception("Failed to CreateRasterizerState\n");
+	}
+
+	OutputDebugString("initRasterizerState ok\n");
+
+	desc = {};
+	desc.CullMode = D3D11_CULL_BACK;
+	desc.DepthClipEnable = true;
+	desc.FillMode = D3D11_FILL_WIREFRAME;
+
+	hr = m_d3d_device->CreateRasterizerState(&desc, &m_wireframe_state);
 	if (FAILED(hr))
 	{
 		throw std::exception("Failed to CreateRasterizerState\n");

@@ -24,7 +24,6 @@ void InputSystem::update()
 		{
 			(*it)->onMouseMove(Point(current_mouse_pos.x,current_mouse_pos.y));
 			++it;
-
 		}
 	}
 		
@@ -43,7 +42,6 @@ void InputSystem::update()
 					{
 						(*it)->onLeftMouseDown(Point(current_mouse_pos.x, current_mouse_pos.y));
 						++it;
-
 					}
 				}
 				else
@@ -55,7 +53,6 @@ void InputSystem::update()
 					{
 							(*it)->onRightMouseDown(Point(current_mouse_pos.x, current_mouse_pos.y));
 							++it;
-
 					}
 				}
 				else
@@ -65,7 +62,6 @@ void InputSystem::update()
 					{
 						(*it)->onKeyDown(i);
 						++it;
-
 					}
 				}
 			}
@@ -82,7 +78,6 @@ void InputSystem::update()
 						{
 							(*it)->onLeftMouseUp(Point(current_mouse_pos.x, current_mouse_pos.y));
 							++it;
-
 						}
 					}
 					else
@@ -94,7 +89,6 @@ void InputSystem::update()
 							{
 								(*it)->onRightMouseUp(Point(current_mouse_pos.x, current_mouse_pos.y));
 								++it;
-
 							}
 						}
 						else

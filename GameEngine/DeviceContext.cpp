@@ -97,14 +97,16 @@ void DeviceContext::setSampler(ID3D11SamplerState* sampler)
 	m_device_context->PSSetSamplers(0, 1, &sampler);
 }
 
-void DeviceContext::setTexture(const VertexShaderPtr &vertex_shader, const TexturePtr &texture)
+void DeviceContext::setTexture(const VertexShaderPtr &vertex_shader, TexturePtr *texture,int num_textures)
 {
-	m_device_context->VSSetShaderResources(0, 1, &texture->m_shader_res_view);
+	for(int i=0;i<num_textures;i++)
+		m_device_context->VSSetShaderResources(i, 1,&texture[i]->m_shader_res_view);
 }
 
-void DeviceContext::setTexture(const PixelShaderPtr &pixel_shader, const TexturePtr &texture)
+void DeviceContext::setTexture(const PixelShaderPtr &pixel_shader, TexturePtr *texture,int num_textures)
 {
-	m_device_context->PSSetShaderResources(0,1,&texture->m_shader_res_view);
+	for (int i = 0; i < num_textures; i++)
+		m_device_context->PSSetShaderResources(i,1,&texture[i]->m_shader_res_view);
 }
 
 
