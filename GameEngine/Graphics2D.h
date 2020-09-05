@@ -2,6 +2,7 @@
 #include <d2d1_1.h>
 #include <dwrite.h>
 #include "Prerequisites.h"
+#include "Vector2D.h"
 
 struct BGRA
 {
@@ -26,6 +27,7 @@ public:
 	void setFont(const WCHAR* string);
 	void createBitmap(unsigned int x, unsigned int y);
 	BGRA* getBitmap();
+	Vector2D getBitmapWidthHeight();
 	void beginDraw();
 	void endDraw();
 	void plotBitmap(unsigned int x, unsigned int y, BGRA color);

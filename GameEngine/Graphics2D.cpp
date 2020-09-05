@@ -109,6 +109,11 @@ BGRA* Graphics2D::getBitmap()
 	return m_plot_target;
 }
 
+Vector2D Graphics2D::getBitmapWidthHeight()
+{
+	return Vector2D(m_bitmap_width,m_bitmap_height);
+}
+
 void Graphics2D::beginDraw()
 {
 	m_device_context->BeginDraw();

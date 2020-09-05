@@ -10,8 +10,10 @@
 #include "Matrix4x4.h"
 #include "InputSystem.h"
 #include "Mesh.h"
+#include "HalfEdgeMesh.h"
 #include "Quaternion.h"
 #include "Perlin.h"
+#include "dxgidebug.h"
 
 #define wUP Vector3D(0,1,0)
 #define wX Vector3D(1,0,0)
@@ -56,7 +58,7 @@ void AppWindow::onCreate()
 	// CREATE LANDSCAPE MESH
 
 	CreateLandscape(land_width, land_height);
-	m_landscape = engine->getMeshManager()->createMeshFromBitmap(engine->getRenderSystem()->getGraphics2D()->getBitmap(), land_width, land_height, 1.0f, 0.15f, 1.0f);
+	m_landscape = engine->getMeshManager()->createMeshFromBitmap(engine->getRenderSystem()->getGraphics2D()->getBitmap(), land_width, land_height, 1.0f, 0.15f, 1);
 
 	// INIT INPUT SYSTEM
 
@@ -76,7 +78,6 @@ void AppWindow::onCreate()
 	//INIT MESHES
 
 	m_sky_mesh = engine->getMeshManager()->createMeshFromFile(L"Assets\\Meshes\\sphere.obj");
-	m_mesh= engine->getMeshManager()->createMeshFromFile(L"Assets\\Meshes\\statue.obj");
 
 	//INIT SWAP CHAIN
 
@@ -138,7 +139,6 @@ void AppWindow::onUpdate()
 
 		//DRAW 3D OBJECTS
 		drawMesh(m_landscape, m_vertex_shader, m_pixel_shader, m_constant_buffer, m_tex_array, 4,m_wireframe?CULL_WIREFRAME:CULL_BACK);
-		drawMesh(m_mesh, m_vertex_shader, m_pixel_shader, m_constant_buffer, &m_brick, 1, CULL_BACK);
 		drawMesh(m_sky_mesh, m_vertex_shader, m_skybox_pixel_shader, m_skybox_constant_buffer, &m_sky, 1,CULL_FRONT);
 
 		//DRAW 2D GRAPHICS
@@ -257,7 +257,10 @@ void AppWindow::updateWorld()
 	Vector3D dir = m_light_position;
 	dir.normalize();	
 	cc.m_light_direction = dir;
-			
+
+	// KEEP CAMERA ABOVE LANDSCAPE
+	UpdateCamera();
+				
 	//OBJECTS - LOCAL TO WORLD TRANSFORM
 	cc.m_world.setIdentity();
 	temp.setRotX(m_rot_x);
@@ -287,6 +290,33 @@ void AppWindow::updateWorld()
 	cc.m_world.setTranslation(m_camera->getPosition());
 	m_skybox_constant_buffer->update(&cc);
 
+}
+
+void AppWindow::UpdateCamera()
+{
+
+	float x = m_camera->getPosition().m_x;
+	float y = m_camera->getPosition().m_y;
+	float z = -m_camera->getPosition().m_z;
+
+	float x_frac = x - (int)x;
+	float z_frac = z - (int)z;
+
+	Graphics2DPtr g2d = GraphicsEngine::get()->getRenderSystem()->getGraphics2D();
+
+	BGRA* bitmap = g2d->getBitmap();
+	Vector2D dim = g2d->getBitmapWidthHeight();
+
+	float y1 = bitmap[(int)z * (int)dim.m_x + (int)x].a * 0.15f;
+	float y2 = bitmap[(int)z * (int)dim.m_x + 1 + (int)x].a * 0.15f;
+	float y3 = bitmap[(1 + (int)z) * (int)dim.m_x + (int)x].a * 0.15f;
+	float y4 = bitmap[(1 + (int)z) * (int)dim.m_x + 1 + (int)x].a * 0.15f;
+
+	float t1 = y1 + x_frac * (y2 - y1);
+	float t2 = y3 + x_frac * (y4 - y3);
+	float ly = t1 + z_frac * (t2 - t1);
+
+	if (y < ly + 1)m_camera->setPosition(Vector3D(x, ly + 1, -z));
 }
 
 
@@ -325,55 +355,48 @@ void AppWindow::draw2DGraphics(RECT& rc)
 
 void AppWindow::CreateLandscape(int width, int height)
 {
-	Perlin p(false);
-	float f, fi, fj;
-	float water = -0.2f;
-	float beach = -0.1f;
-	float rock = 0.25f;
-	BYTE water_height = 110;
-
-	BYTE h;
-	BGRA c;
+	Perlin p(true);
+		
+	float min = -1.2f;
+	float max = 1.2f;
+	float beach = 0.305f;
+	float water = 0.3f;
+	BYTE tex;
 
 	unsigned int xplot = 0, yplot = 0;
 	for (int j = 0; j < height; j++)
 	{
 		for (int i = 0; i < width; i++)
 		{
-			fi = i / 40.0f;
-			fj = j / 40.0f;
-			f = p.getNoise(fi, fj) + 0.5f * p.getNoise(i / 20.0f, j / 20.0f) + 0.25f * p.getNoise(i / 10.0f, j / 10.0f) + 0.1f * p.getNoise(i / 5.0f, j / 5.0f);
-
-			float temp = (((f + 1.0f) / 2.0f) * 255.0f);
-			if (temp > 255)temp = 255;
-			h = (BYTE)(temp);
-
-			if (f <= water)
-			{
-				c = RGBA(0, 0, 0, 110);
-			}
+			float fi = i / 40.0f;
+			float fj = j / 40.0f;
+			float f = p.getNoise(fi, fj) + 0.5f * p.getNoise(i / 20.0f, j / 20.0f) + 0.25f * p.getNoise(i / 10.0f, j / 10.0f) + 0.1f * p.getNoise(i / 5.0f, j / 5.0f);
+						
+			f = (f - min) / (max - min); //map to [0,1]
+			if (f > 1.0f)f = 1.0f;
+			if (f < water)
+				{
+					f = water;
+					tex = 0;
+				}
 			else
-			{
-				if (f <= beach)
 				{
-					c = RGBA(1, 1, 1, 110);
-				}
-				else
+				if (f < beach)
 				{
-					if (f <= rock)
-					{
-						c = RGBA(2, 2, 2, h);
-					}
-					else
-					{
-						c = RGBA(3, 3, 3, h);
-					}
+					f = beach;
+					tex = 0;
 				}
-			}
+					tex = 1;
+				}
+			
+			BYTE h = (BYTE)(f * 255.0f); //map to [0,255]
+			BGRA c = RGBA(tex, h, h, h);
+			
 			GraphicsEngine::get()->getRenderSystem()->getGraphics2D()->plotBitmap(xplot, yplot, c);
 			xplot++;
 		}
 		yplot++;
 		xplot = 0;
 	}
+	std::cout << "Fmin " << min << " Fmax " << max << std::endl;
 }

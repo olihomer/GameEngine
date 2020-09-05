@@ -157,6 +157,7 @@
     <ClCompile Include="DeviceContext.cpp" />
     <ClCompile Include="Graphics2D.cpp" />
     <ClCompile Include="GraphicsEngine.cpp" />
+    <ClCompile Include="HalfEdgeMesh.cpp" />
     <ClCompile Include="IndexBuffer.cpp" />
     <ClCompile Include="InputSystem.cpp" />
     <ClCompile Include="main.cpp" />
@@ -180,6 +181,7 @@
     <ClInclude Include="DeviceContext.h" />
     <ClInclude Include="Graphics2D.h" />
     <ClInclude Include="GraphicsEngine.h" />
+    <ClInclude Include="HalfEdgeMesh.h" />
     <ClInclude Include="Mesh.h" />
     <ClInclude Include="MeshManager.h" />
     <ClInclude Include="Perlin.h" />

@@ -35,6 +35,7 @@ public:
 	virtual void onKillFocus() override;
 
 	void updateWorld();
+	void UpdateCamera();
 	void drawMesh(const MeshPtr& mesh, const VertexShaderPtr& vs, const PixelShaderPtr& ps, const ConstantBufferPtr& cb, TexturePtr *tex, int num_textures, int cullmode);
 
 private:
@@ -60,7 +61,6 @@ private:
 	TexturePtr m_brick;
 	TexturePtr m_sky;
 	TexturePtr m_tex_array[10];
-	MeshPtr m_mesh;
 	MeshPtr m_landscape;
 	MeshPtr m_sky_mesh;	
 	bool m_wireframe = false;

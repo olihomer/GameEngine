@@ -13,7 +13,7 @@ public:
     ~Mesh();
     const VertexBufferPtr& getVertexBuffer() { return m_vertex_buffer; }
     const IndexBufferPtr& getIndexBuffer() { return m_index_buffer; }
-private:
+protected:
     VertexBufferPtr m_vertex_buffer;
     IndexBufferPtr m_index_buffer;
 };

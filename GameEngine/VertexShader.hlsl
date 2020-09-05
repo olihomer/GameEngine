@@ -35,7 +35,7 @@ VS_OUTPUT main(VS_INPUT input)
 	//WATER WAVES
 	if (input.tex == 0)
 	{
-		input.pos0.y = input.pos0.y +(0.1f* sin(m_time+input.pos0.x+input.pos0.z));
+		input.pos0.y = input.pos0.y -0.1f+(0.1f* sin(m_time+input.pos0.x+input.pos0.z));
 	}
 
 	//WORLD SPACE

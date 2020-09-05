@@ -33,6 +33,7 @@ public:
 
 	void releaseCompiledShader();
 	void setRasterizerState(int cullmode);
+	void ReportLiveObjects();
 
 private:
 	ID2D1Factory1* m_d2d_factory;
@@ -48,6 +49,7 @@ private:
 	IDXGIAdapter* m_dxgi_adapter;
 	IDXGIFactory* m_dxgi_factory;
 	ID3D11SamplerState* m_sampler_state;
+	ID3D11Debug* m_d3dDebug;
 	DeviceContextPtr m_device_context_wrapper;
 	Graphics2DPtr m_graphics2D;
 	ID3DBlob* m_blob;

@@ -161,6 +161,11 @@ RenderSystem::RenderSystem()
 	m_d3d_device->QueryInterface(__uuidof(IDXGIDevice), (void**)&m_dxgi_device);
 	m_dxgi_device->GetParent(__uuidof(IDXGIAdapter), (void**)&m_dxgi_adapter);
 	m_dxgi_adapter->GetParent(__uuidof(IDXGIFactory), (void**)&m_dxgi_factory);
+	
+	// GET DEBUG INTERFACE
+	
+	m_d3d_device->QueryInterface(__uuidof(ID3D11Debug), reinterpret_cast<void**>(&m_d3dDebug));
+
 
 	OutputDebugString("D3D Device Created ok\n");
 
@@ -244,9 +249,11 @@ RenderSystem::~RenderSystem()
 	m_sampler_state->Release();
 	m_cull_front_state->Release();
 	m_cull_back_state->Release();
+	m_wireframe_state->Release();
 	m_d2d_factory->Release();
 	m_d2d_device->Release();
 	m_d2d_context->Release();
+	m_d3dDebug->Release();
 }
 
 
@@ -304,6 +311,11 @@ void RenderSystem::setRasterizerState(int cullmode)
 		break;
 	}
 
+}
+
+void RenderSystem::ReportLiveObjects()
+{
+	m_d3dDebug->ReportLiveDeviceObjects(D3D11_RLDO_SUMMARY);
 }
 
 void RenderSystem::initRasterizerState()

@@ -51,7 +51,7 @@ float4 main(PS_INPUT input) : SV_TARGET
 
 	float specular_light = ks * amount_specular_light * is;
 
-	if(input.tex>0)specular_light = 0; //specular on water only
+	if(input.tex>1)specular_light = 0; //specular on water only
 
 	float3 total_light=ambient_light + diffuse_light + specular_light;
 	float3 textured_light1;
@@ -66,23 +66,38 @@ float4 main(PS_INPUT input) : SV_TARGET
 
 	float level = input.worldpos.y;
 	
+	float water = 11.475;
+	float beach = 11.667;
+	float grass = 26;
+	float max = 40;
+	
 	float4 f4_light;
 	float index;
+	float offset = 0.3;
 
-	if(level<18)
+	if (level <= water)
 	{
-		index = (level - 16)/ 2;
-		f4_light = ((1-index) * float4(textured_light1, 1.0) + index* float4(textured_light2, 1.0));
+		f4_light = float4(textured_light1, 1.0);
 	}
 	else
-		if (level< 26)
+		if(level <= beach)
 		{
-			index = (level - 18) / 8;
+			index = (level - water) / (beach - water);
+			float index1 = 1-(index + offset);
+			if (index1 < 0)index1 = 0;
+			float index2 = index + offset;
+			if (index2 >1)index2 = 1;
+			f4_light = ((index1) * float4(textured_light1, 1.0) + (index2)*float4(textured_light2, 1.0));
+		}
+		else
+		if (level < grass)
+		{
+			index = (level - beach) / (grass - beach);
 			f4_light = ((1-index) * float4(textured_light2, 1.0) + index * float4(textured_light3, 1.0));
 		}
 		else
 		{
-			index = (level - 26) / 14;
+			index = (level - grass) / (max - grass);
 			f4_light = ((1-index) * float4(textured_light3, 1.0) + index * float4(textured_light4, 1.0));
 		}
 		

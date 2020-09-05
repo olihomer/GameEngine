@@ -126,6 +126,9 @@
     <ClCompile Include="Graphics2D.cpp">
       <Filter>GameEngine\GraphicsEngine\RenderSystem\Graphics2D</Filter>
     </ClCompile>
+    <ClCompile Include="HalfEdgeMesh.cpp">
+      <Filter>GameEngine\GraphicsEngine\ResourceManager\MeshManager</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AppWindow.h">
@@ -220,6 +223,9 @@
     </ClInclude>
     <ClInclude Include="Perlin.h">
       <Filter>GameEngine\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="HalfEdgeMesh.h">
+      <Filter>GameEngine\GraphicsEngine\ResourceManager\MeshManager</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

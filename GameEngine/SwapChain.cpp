@@ -170,7 +170,6 @@ SwapChain::~SwapChain()
 	m_dxgi_swapchain->Release();
 	m_render_target_view->Release();
 	m_bitmap->Release(); 
-	
 }
 
 bool SwapChain::present(bool vsync)

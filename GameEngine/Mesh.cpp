@@ -88,8 +88,8 @@ Mesh::Mesh(BGRA* bitmap, int width, int height, float horiz_scale, float vert_sc
 
 	std::vector<VertexMesh> list_vertices;
 	std::vector<unsigned int> list_indices;
-	Vector3D v1, v2, v3, v4;
-	Vector3D n1, n2, n3, n4,norm;
+	Vector3D v1, v2, v3, v4, v5, v6;
+	Vector3D n1, n2, n3, n4,n5,n6,norm;
 	float miny = 999;
 	float maxy = 0;
 
@@ -109,28 +109,34 @@ Mesh::Mesh(BGRA* bitmap, int width, int height, float horiz_scale, float vert_sc
 			if (vy < miny)miny = vy;
 			if (vy > maxy)maxy = vy;
 
-			v1 = v2 = v3 = v4 = Vector3D(0, 0, 0);
+			v1 = v2 = v3 = v4 = v5 = v6 = Vector3D(0, 0, 0);
 
-			// get four vectors (pointing towards current vertex) to compute face normals
-			if (j > 0)v1 = Vector3D(0, ((float)bitmap[j * width + i].a * vert_scale) - ((float)bitmap[(j - 1) * width + i].a * vert_scale),1);
-			if(i < width - 1)v2 = Vector3D(1, ((float)bitmap[j * width + i].a * vert_scale) - ((float)bitmap[j * width + (i +1)].a * vert_scale),0);
-			if (j < height - 1)v3 = Vector3D(0, ((float)bitmap[j * width + i].a * vert_scale) - ((float)bitmap[(j +1)*width + i ].a * vert_scale),-1);
-			if (i > 0)v4 = Vector3D(-1, ((float)bitmap[j * width + i].a * vert_scale) - ((float)bitmap[j * width + (i - 1)].a * vert_scale),0);
-			
+			// get six vectors (pointing towards current vertex) to compute face normals
+			if (j > 0)v1 = Vector3D(0, ((float)bitmap[j * width + i].a * vert_scale) - ((float)bitmap[(j - 1) * width + i].a * vert_scale),-1);
+			if(i < width - 1)v2 = Vector3D(-1, ((float)bitmap[j * width + i].a * vert_scale) - ((float)bitmap[j * width + (i +1)].a * vert_scale),0);
+			if (j < height - 1)v3 = Vector3D(0, ((float)bitmap[j * width + i].a * vert_scale) - ((float)bitmap[(j+1)*width + i ].a * vert_scale),1);
+			if (i > 0)v4 = Vector3D(1, ((float)bitmap[j * width + i].a * vert_scale) - ((float)bitmap[j * width + (i - 1)].a * vert_scale),0);
+			if (j > 0 && i < width - 1)v5 = Vector3D(-1, ((float)bitmap[j * width + i].a * vert_scale) - ((float)bitmap[(j - 1) * width + (i - 1)].a * vert_scale), -1);
+			if (i > 0 && j < height - 1)v6 = Vector3D(1, ((float)bitmap[j * width + i].a * vert_scale) - ((float)bitmap[(j + 1) * width + (i - 1)].a * vert_scale), 1);
 
-			//calculate four face normals
+			//calculate six face normals
 
-			n1 = Vector3D::cross(v1, v4);
+			n1 = Vector3D::cross(v4, v1);
 			n2 = Vector3D::cross(v1, v2);
 			n3 = Vector3D::cross(v2, v3);
 			n4 = Vector3D::cross(v3, v4);
-			norm = n1 + n2 + n3 + n4;
+			n5 = Vector3D::cross(v1, v5);
+			n6 = Vector3D::cross(v3, v6);
+
+			norm = n1 + n2 + n3 + n4 + n5 + n6;
 			
-			if((i==width-1&&j==height-1) || norm.magnitude() == 0)norm=Vector3D(0, 1, 0); //edge cases
+			if((i==width-1 && j==height-1) || norm.magnitude() == 0)norm=Vector3D(0, 1, 0); //edge cases
 			
 			norm.normalize();
 			
-			float tex = col.r;
+			int tex = 2;
+			// test if surrounded by water
+			if (i < width - 1 && j < height - 1 && i>0 && j>0 && bitmap[j * width + i].r + bitmap[(j + 1) * width + i].r + bitmap[(j + 1) * width + (i + 1)].r + bitmap[j * width + (i + 1)].r + bitmap[(j - 1) * width + i].r + bitmap[j * width + (i - 1)].r + bitmap[(j - 1) * width + (i - 1)].r + bitmap[(j - 1) * width + (i + 1)].r + bitmap[(j + 1) * width + (i - 1)].r == 0)tex = 0;
 
 			VertexMesh vertex(Vector3D(vx, vy, vz), Vector2D((float)i, (float)j), norm, Vector4D(), (unsigned int)tex);
 			list_vertices.push_back(vertex);
