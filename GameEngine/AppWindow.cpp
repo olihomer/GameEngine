@@ -13,7 +13,6 @@
 #include "HalfEdgeMesh.h"
 #include "Quaternion.h"
 #include "Perlin.h"
-#include "dxgidebug.h"
 
 #define wUP Vector3D(0,1,0)
 #define wX Vector3D(1,0,0)
@@ -50,18 +49,17 @@ void AppWindow::onCreate()
 	GraphicsEngine* engine=GraphicsEngine::get();
 	
 	// INIT 2D PLOTTING BITMAP
-
-	int land_width = 300;
-	int land_height = 300;
-	engine->getRenderSystem()->getGraphics2D()->createBitmap(land_width, land_height);
+	m_land_width = 3;
+	m_land_height = 3;
+	m_land_hscale = 1.0f;
+	m_land_vscale = 0.15f;
+	engine->getRenderSystem()->getGraphics2D()->createBitmap(m_land_width, m_land_height);
 
 	// CREATE LANDSCAPE MESH
-
-	CreateLandscape(land_width, land_height);
-	m_landscape = engine->getMeshManager()->createMeshFromBitmap(engine->getRenderSystem()->getGraphics2D()->getBitmap(), land_width, land_height, 1.0f, 0.15f, 1);
+	CreateLandscape(m_land_width, m_land_height,false);
+	m_landscape = engine->getMeshManager()->createMeshFromBitmap(engine->getRenderSystem()->getGraphics2D()->getBitmap(), m_land_width, m_land_height, m_land_hscale, m_land_vscale, 1);
 
 	// INIT INPUT SYSTEM
-
 	InputSystem::get()->addListener(this);
 	InputSystem::get()->hideCursor();
 	InputSystem::get()->setCursorPosition(Point(width >> 1, height >> 1));
@@ -76,16 +74,15 @@ void AppWindow::onCreate()
 	m_sky = engine->getTextureManager()->createTextureFromFile(L"Assets\\Textures\\sky.jpg");
 
 	//INIT MESHES
-
 	m_sky_mesh = engine->getMeshManager()->createMeshFromFile(L"Assets\\Meshes\\sphere.obj");
-
+	m_halfedge_mesh = std::make_unique<HalfEdgeMesh>(m_landscape);
+	m_halfedge_mesh->Subdivide();
+	
 	//INIT SWAP CHAIN
-
 	m_swap_chain = engine->getRenderSystem()->createSwapChain(this->m_hwnd, width, height);
 	if (this->m_hwnd == nullptr)OutputDebugString("Warning: m_hwnd is null\n");
 
 	// PREPARE SHADERS
-
 	void* shader_byte_code = nullptr;
 	size_t size_shader = 0;
 
@@ -101,20 +98,17 @@ void AppWindow::onCreate()
 	m_skybox_pixel_shader = engine->getRenderSystem()->createPixelShader(shader_byte_code, size_shader);
 	engine->getRenderSystem()->releaseCompiledShader();
 
-	// PREPARE CONSTANT BUFFERS
-	
+	// PREPARE CONSTANT BUFFERS	
 	constant cc;
 	m_constant_buffer = engine->getRenderSystem()->createConstantBuffer(&cc, sizeof(constant));
 	m_skybox_constant_buffer = engine->getRenderSystem()->createConstantBuffer(&cc, sizeof(constant));
 	
 	// CREATE CAMERA AND LIGHTS
-
-	Vector3D pos = Vector3D(100.0f,20.0f, -100.0f);
+	Vector3D pos = Vector3D(50.0f,20.0f, -50.0f);
 	//Vector3D pos = Vector3D(0.0f, 0.0f, -2.0f);
 	Vector3D lookat = Vector3D(100.0f, 0.0f, 0.0f);
 	Vector3D up= Vector3D(0, 1, 0);
 	m_camera = new Camera(pos,lookat,up, 1.0f, 0.1f, 1000.0f, 90);
-
 	m_light_position = Vector3D(0.2f, 1, 0.2f);
 	
 }
@@ -138,7 +132,7 @@ void AppWindow::onUpdate()
 		updateWorld();
 
 		//DRAW 3D OBJECTS
-		drawMesh(m_landscape, m_vertex_shader, m_pixel_shader, m_constant_buffer, m_tex_array, 4,m_wireframe?CULL_WIREFRAME:CULL_BACK);
+		drawMesh(m_halfedge_mesh, m_vertex_shader, m_pixel_shader, m_constant_buffer, m_tex_array, 4,m_wireframe?CULL_WIREFRAME:CULL_BACK);
 		drawMesh(m_sky_mesh, m_vertex_shader, m_skybox_pixel_shader, m_skybox_constant_buffer, &m_sky, 1,CULL_FRONT);
 
 		//DRAW 2D GRAPHICS
@@ -307,10 +301,10 @@ void AppWindow::UpdateCamera()
 	BGRA* bitmap = g2d->getBitmap();
 	Vector2D dim = g2d->getBitmapWidthHeight();
 
-	float y1 = bitmap[(int)z * (int)dim.m_x + (int)x].a * 0.15f;
-	float y2 = bitmap[(int)z * (int)dim.m_x + 1 + (int)x].a * 0.15f;
-	float y3 = bitmap[(1 + (int)z) * (int)dim.m_x + (int)x].a * 0.15f;
-	float y4 = bitmap[(1 + (int)z) * (int)dim.m_x + 1 + (int)x].a * 0.15f;
+	float y1 = bitmap[(int)z * (int)dim.m_x + (int)x].a * m_land_vscale;
+	float y2 = bitmap[(int)z * (int)dim.m_x + 1 + (int)x].a * m_land_vscale;
+	float y3 = bitmap[(1 + (int)z) * (int)dim.m_x + (int)x].a * m_land_vscale;
+	float y4 = bitmap[(1 + (int)z) * (int)dim.m_x + 1 + (int)x].a * m_land_vscale;
 
 	float t1 = y1 + x_frac * (y2 - y1);
 	float t2 = y3 + x_frac * (y4 - y3);
@@ -353,9 +347,9 @@ void AppWindow::draw2DGraphics(RECT& rc)
 
 }
 
-void AppWindow::CreateLandscape(int width, int height)
+void AppWindow::CreateLandscape(int width, int height, bool randomize)
 {
-	Perlin p(true);
+	Perlin p(randomize);
 		
 	float min = -1.2f;
 	float max = 1.2f;

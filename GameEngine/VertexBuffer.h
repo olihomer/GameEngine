@@ -1,4 +1,5 @@
 #include <d3d11.h>
+#include <vector>
 #include "Prerequisites.h"
 
 #pragma once

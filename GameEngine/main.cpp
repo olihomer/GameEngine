@@ -34,5 +34,6 @@ int main()
 	
 	GraphicsEngine::release();
 	InputSystem::release();
+	_CrtDumpMemoryLeaks();
 	return 0;
 }

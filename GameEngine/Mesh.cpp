@@ -9,6 +9,10 @@
 #include "TinyObjLoader.h"
 
 
+Mesh::Mesh()
+{
+}
+
 Mesh::Mesh(const wchar_t* full_path) :Resource(full_path)
 {
 	using namespace tinyobj;
@@ -29,14 +33,11 @@ Mesh::Mesh(const wchar_t* full_path) :Resource(full_path)
 
 	if (shapes.size() > 1)throw std::exception("More than one shape");
 
-	std::vector<VertexMesh> list_vertices;
-	std::vector<unsigned int> list_indices;
-
 	for (size_t s = 0; s < shapes.size(); s++)
 	{
 		size_t index_offset = 0;
-		list_vertices.reserve(shapes[s].mesh.indices.size());
-		list_indices.reserve(shapes[s].mesh.indices.size());
+		m_list_vertices.reserve(shapes[s].mesh.indices.size());
+		m_list_indices.reserve(shapes[s].mesh.indices.size());
 		
 		for (size_t f = 0; f < shapes[s].mesh.num_face_vertices.size(); f++)
 		{
@@ -58,8 +59,8 @@ Mesh::Mesh(const wchar_t* full_path) :Resource(full_path)
 				real_t nz = attrib.normals[index.normal_index * 3 + 2];
 
 				VertexMesh vertex(Vector3D(vx, vy, vz), Vector2D(tx, ty), Vector3D(nx,ny,nz));
-				list_vertices.push_back(vertex);
-				list_indices.push_back((unsigned int)index_offset+v);
+				m_list_vertices.push_back(vertex);
+				m_list_indices.push_back((unsigned int)index_offset+v);
 			}
 			index_offset += num_face_verts;
 		}
@@ -70,15 +71,20 @@ Mesh::Mesh(const wchar_t* full_path) :Resource(full_path)
 		throw std::exception("Could not load mesh");
 	}
 
+	PrepareBuffers();
+
+	OutputDebugString("Mesh from file created ok\n");
+}
+
+void Mesh::PrepareBuffers()
+{
 	void* shader_byte_code = nullptr;
 	size_t shader_size = 0;
 
 	GraphicsEngine::get()->getRenderSystem()->getVertexMeshLayoutShaderByteCodeAndSize(&shader_byte_code, &shader_size);
-	m_vertex_buffer=GraphicsEngine::get()->getRenderSystem()->createVertexBuffer(&list_vertices[0], sizeof(VertexMesh), (UINT)list_vertices.size(), shader_byte_code, (UINT)shader_size);
+	m_vertex_buffer = GraphicsEngine::get()->getRenderSystem()->createVertexBuffer(&m_list_vertices[0], sizeof(VertexMesh), (UINT)m_list_vertices.size(), shader_byte_code, (UINT)shader_size);
 
-	m_index_buffer=GraphicsEngine::get()->getRenderSystem()->createIndexBuffer(&list_indices[0], (UINT)list_indices.size());
-
-	OutputDebugString("Mesh from file created ok\n");
+	m_index_buffer = GraphicsEngine::get()->getRenderSystem()->createIndexBuffer(&m_list_indices[0], (UINT)m_list_indices.size());
 }
 
 
@@ -86,15 +92,13 @@ Mesh::Mesh(BGRA* bitmap, int width, int height, float horiz_scale, float vert_sc
 {
 	OutputDebugString("Entering Mesh(BGRA*)\n");
 
-	std::vector<VertexMesh> list_vertices;
-	std::vector<unsigned int> list_indices;
 	Vector3D v1, v2, v3, v4, v5, v6;
 	Vector3D n1, n2, n3, n4,n5,n6,norm;
 	float miny = 999;
 	float maxy = 0;
 
-	list_vertices.reserve(width*height); //one vertex per pixel in bitmap
-	list_indices.reserve((width-1)*(height-1)*6); //six indices (two triangles) per square
+	m_list_vertices.reserve(width*height); //one vertex per pixel in bitmap
+	m_list_indices.reserve((width-1)*(height-1)*6); //six indices (two triangles) per square
 
 	for (int j = 0; j < height; j++)
 	{
@@ -139,31 +143,25 @@ Mesh::Mesh(BGRA* bitmap, int width, int height, float horiz_scale, float vert_sc
 			if (i < width - 1 && j < height - 1 && i>0 && j>0 && bitmap[j * width + i].r + bitmap[(j + 1) * width + i].r + bitmap[(j + 1) * width + (i + 1)].r + bitmap[j * width + (i + 1)].r + bitmap[(j - 1) * width + i].r + bitmap[j * width + (i - 1)].r + bitmap[(j - 1) * width + (i - 1)].r + bitmap[(j - 1) * width + (i + 1)].r + bitmap[(j + 1) * width + (i - 1)].r == 0)tex = 0;
 
 			VertexMesh vertex(Vector3D(vx, vy, vz), Vector2D((float)i, (float)j), norm, Vector4D(), (unsigned int)tex);
-			list_vertices.push_back(vertex);
+			m_list_vertices.push_back(vertex);
 
 			//Create index buffer = pair of triangles for each square
 
 			if (j < height - 1 && i < width - 1)
 			{
-				list_indices.push_back(j * width + i);
-				list_indices.push_back(j * width + i + 1);
-				list_indices.push_back((j + 1) * width + i);
+				m_list_indices.push_back(j * width + i);
+				m_list_indices.push_back(j * width + i + 1);
+				m_list_indices.push_back((j + 1) * width + i);
 
-				list_indices.push_back(j * width + i + 1);
-				list_indices.push_back((j + 1) * width + i + 1);
-				list_indices.push_back((j + 1) * width + i);
+				m_list_indices.push_back(j * width + i + 1);
+				m_list_indices.push_back((j + 1) * width + i + 1);
+				m_list_indices.push_back((j + 1) * width + i);
 			}
 		}
 	}
 
-	void* shader_byte_code = nullptr;
-	size_t shader_size = 0;
+	PrepareBuffers();
 
-	GraphicsEngine::get()->getRenderSystem()->getVertexMeshLayoutShaderByteCodeAndSize(&shader_byte_code, &shader_size);
-	m_vertex_buffer = GraphicsEngine::get()->getRenderSystem()->createVertexBuffer(&list_vertices[0], sizeof(VertexMesh), (UINT)list_vertices.size(), shader_byte_code, (UINT)shader_size);
-
-	m_index_buffer = GraphicsEngine::get()->getRenderSystem()->createIndexBuffer(&list_indices[0], (UINT)list_indices.size());
-	
 	OutputDebugString("Mesh from bitmap created ok\n");
 	std::cout << "Min: " << miny << " Max:" << maxy << std::endl;
 }

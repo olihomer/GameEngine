@@ -17,7 +17,7 @@ public:
 	// Inherited via Window
 	
 	virtual void onCreate() override;
-	void CreateLandscape(int width, int height);
+	void CreateLandscape(int width, int height, bool randomize);
 	virtual void onUpdate() override;
 	void draw2DGraphics(RECT& rc);
 	virtual void onDestroy() override;
@@ -63,6 +63,12 @@ private:
 	TexturePtr m_tex_array[10];
 	MeshPtr m_landscape;
 	MeshPtr m_sky_mesh;	
+	MeshPtr m_temp_mesh;
+	HalfEdgeMeshPtr m_halfedge_mesh;
 	bool m_wireframe = false;
+	int m_land_width;
+	int m_land_height;
+	float m_land_hscale;
+	float m_land_vscale;
 };
 
