@@ -107,66 +107,77 @@ void HalfEdgeMesh::Subdivide()
 		for (int e = 0; e < 3; e++) //iterate over three edges
 		{
 			std::cout << "Edge number: " << e << " " << std::endl;
-			Edge edge = *(face_edges[e]);
+			std::shared_ptr<Edge> edge = face_edges[e]; // pointer to current edge
 
-			Vector3D v1 = *(edge.vert->pos); // get first vertex attached to edge
-			std::cout << "Vertex 1: " << v1 << std::endl;
-
-			if (edge.pair != nullptr)
+			if (!edge->isSplit)
 			{
-				//interior edge, so has two faces
-				std::cout << "Found pair, must be an interior edge" << std::endl;
+				std::cout << "Edge not yet split" << std::endl;
 
-				Vector3D v2 = *(edge.pair->vert->pos);
-				std::cout << "Vertex 2: " << v2 << std::endl;
+				Vector3D v1 = *(edge->vert->pos); // get first vertex attached to edge
+				std::cout << "Vertex 1: " << v1 << std::endl;
 
-				f1 = *(edge.face); // get the two faces
-				f2 = *(edge.pair->face);
+				if (edge->pair != nullptr)
+				{
+					//interior edge, so has two faces
+					std::cout << "Found pair, must be an interior edge" << std::endl;
 
-				v3 = *(edge.next.lock()->vert->pos); // get the two opposite vertices at far end of faces
+					Vector3D v2 = *(edge->pair->vert->pos);
+					std::cout << "Vertex 2: " << v2 << std::endl;
 
-				std::shared_ptr<Edge> temp_edge = edge.pair->next.lock();
+					f1 = *(edge->face); // get the two faces
+					f2 = *(edge->pair->face);
 
-				v4 = *(temp_edge->vert->pos);
+					v3 = *(edge->next.lock()->vert->pos); // get the two opposite vertices at far end of faces
+					v4 = *(edge->pair->next.lock()->vert->pos);
 
-				std::cout << "Vertex 3: " << v3 << std::endl << "Vertex 4: " << v4 << std::endl;
+					std::cout << "Vertex 3: " << v3 << std::endl << "Vertex 4: " << v4 << std::endl;
 
-				newVertex = (v1 + v2) * (3.0f / 8.0f) + (v3 + v4) * (1.0f / 8.0f);
-				std::cout << "New vertex at: " << newVertex << std::endl;
+					newVertex = (v1 + v2) * (3.0f / 8.0f) + (v3 + v4) * (1.0f / 8.0f);
+					std::cout << "New vertex at: " << newVertex << std::endl;
+					
+					edge->pair->isSplit = true; //Mark pair as having been split
+					edge->isSplit = true; //Mark edge as split
+				}
+				else
+				{
+					//boundary edge, one face only
+					std::cout << "Empty pair, must be a boundary edge" << std::endl;
+
+					f1 = *(edge->face);
+
+					v2 = *(edge->next.lock()->next.lock()->vert->pos);
+					std::cout << "Vertex 2: " << v2 << std::endl;
+
+					newVertex = (v1 + v2) * 0.5f;		// Vector3D of new vertex
+					std::cout << "New vertex at: " << newVertex << std::endl;
+
+					//std::pair new_index1(edge_index.first, new_vertex_index);	//create two new edges to/from new vertex
+					//std::pair new_index2(new_vertex_index, edge_index.second);
+					std::shared_ptr<Edge> new_edge1 = std::make_shared<Edge>();
+					std::shared_ptr<Edge> new_edge2 = std::make_shared<Edge>();
+
+
+					new_edge1->face = edge->face; //new edges point to same face as existing edge
+					new_edge2->face = edge->face;
+
+					new_edge1->next = new_edge2; // each edge points to next in face
+					new_edge2->next = edge->next;
+					//edge.next.lock()->next.lock()->next = new_edge1; // previous edge of existing edge points to first new edge
+
+					new_edge1->vert = std::make_shared<Vertex>(); // create three vertices
+					new_edge2->vert = std::make_shared<Vertex>();
+
+					new_edge1->vert->pos = std::make_shared<Vector3D>(newVertex); // vertex position at end of edge
+					new_edge1->vert->edge = new_edge2; // vertex points to edge coming out of it
+
+					new_edge2->vert = edge->vert;
+					edge->isSplit = true; //Mark edge as split
+				}
+			
 			}
 			else
 			{
-				//boundary edge, one face only
-				std::cout << "Empty pair, must be a boundary edge" << std::endl;
-
-				f1 = *(edge.face);
-
-				v2 = *(edge.next.lock()->next.lock()->vert->pos);
-				std::cout << "Vertex 2: " << v2 << std::endl;
-
-				newVertex = (v1 + v2) * 0.5f;		// Vector3D of new vertex
-				std::cout << "New vertex at: " << newVertex << std::endl;
-
-				//std::pair new_index1(edge_index.first, new_vertex_index);	//create two new edges to/from new vertex
-				//std::pair new_index2(new_vertex_index, edge_index.second);
-				std::shared_ptr<Edge> new_edge1 = std::make_shared<Edge>();
-				std::shared_ptr<Edge> new_edge2 = std::make_shared<Edge>();
-
-
-				new_edge1->face = edge.face; //new edges point to same face as existing edge
-				new_edge2->face = edge.face;
-
-				new_edge1->next = new_edge2; // each edge points to next in face
-				new_edge2->next = edge.next;
-				//edge.next.lock()->next.lock()->next = new_edge1; // previous edge of existing edge points to first new edge
-
-				new_edge1->vert = std::make_shared<Vertex>(); // create three vertices
-				new_edge2->vert = std::make_shared<Vertex>();
-
-				new_edge1->vert->pos = std::make_shared<Vector3D>(newVertex); // vertex position at end of edge
-				new_edge1->vert->edge = new_edge2; // vertex points to edge coming out of it
-
-				new_edge2->vert = edge.vert;
+				std::cout << "Edge has already been split" << std::endl;
 			}
 		}
 	i++;
