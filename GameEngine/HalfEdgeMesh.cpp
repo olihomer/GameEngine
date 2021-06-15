@@ -44,13 +44,10 @@ HalfEdgeMesh::HalfEdgeMesh(MeshPtr mesh)
 		edge2->vert = std::make_shared<Vertex>();
 		edge3->vert = std::make_shared<Vertex>();
 
-		edge1->vert->vertex_data = &(m_list_vertices[index_v2]); // vertex position at end of edge
 		edge1->vert->vertexIndex = index_v2;
 		edge1->vert->edge = edge2; // vertex points to edge coming out of it
-		edge2->vert->vertex_data = &(m_list_vertices[index_v3]);
 		edge2->vert->vertexIndex = index_v3;
 		edge2->vert->edge = edge3;
-		edge3->vert->vertex_data = &(m_list_vertices[index_v1]);
 		edge3->vert->vertexIndex = index_v1;
 		edge3->vert->edge = edge1;
 
@@ -119,9 +116,9 @@ void HalfEdgeMesh::Subdivide()
 		face_edges[2] = face_edges[1]->next.lock();
 
 		
-		newVertices[0] = *(face_edges[0]->vert->vertex_data); // get three vertices
-		newVertices[1] = *(face_edges[0]->vert->vertex_data);
-		newVertices[2] = *(face_edges[0]->vert->vertex_data);
+		newVertices[0] = m_list_vertices[face_edges[0]->vert->vertexIndex]; // get three vertices
+		newVertices[1] = m_list_vertices[face_edges[1]->vert->vertexIndex];
+		newVertices[2] = m_list_vertices[face_edges[2]->vert->vertexIndex];
 
 		int currentFaceVertexCount = 0;
 
@@ -130,7 +127,7 @@ void HalfEdgeMesh::Subdivide()
 			if(DEBUG)std::cout << "Edge number: " << e << " " << std::endl;
 			std::shared_ptr<Edge> edge = face_edges[e]; // pointer to current edge
 
-			v1 = *(edge->vert->vertex_data); // get first vertex attached to edge
+			v1 = m_list_vertices[edge->vert->vertexIndex]; // get first vertex attached to edge
 			newVertexIndices[currentFaceVertexCount] = edge->vert->vertexIndex; // get its existing index
 			if (DEBUG)std::cout << "Vertex 1: " << v1.vx_coords << " Index = " << newVertexIndices[currentFaceVertexCount] << " current face vertex count = " << currentFaceVertexCount << std::endl;
 			currentFaceVertexCount++;
@@ -144,15 +141,15 @@ void HalfEdgeMesh::Subdivide()
 					//interior edge, so has two faces
 					if(DEBUG)std::cout << "Found pair, must be an interior edge" << std::endl;
 
-					v2 = *(edge->pair->vert->vertex_data);
+					v2 = m_list_vertices[edge->pair->vert->vertexIndex];
 					if(DEBUG)std::cout << "Vertex 2: " << v2.vx_coords << std::endl;
 					
 
 					f1 = *(edge->face); // get the two faces
 					f2 = *(edge->pair->face);
 
-					v3 = *(edge->next.lock()->vert->vertex_data); // get the two opposite vertices at far end of faces
-					v4 = *(edge->pair->next.lock()->vert->vertex_data);
+					v3 = m_list_vertices[edge->next.lock()->vert->vertexIndex]; // get the two opposite vertices at far end of faces
+					v4 = m_list_vertices[edge->pair->next.lock()->vert->vertexIndex];
 
 					if(DEBUG)std::cout << "Vertex 3: " << v3.vx_coords << std::endl << "Vertex 4: " << v4.vx_coords << std::endl;
 
@@ -184,7 +181,7 @@ void HalfEdgeMesh::Subdivide()
 
 					f1 = *(edge->face);
 
-					v2 = *(edge->next.lock()->next.lock()->vert->vertex_data);
+					v2 = m_list_vertices[edge->next.lock()->next.lock()->vert->vertexIndex];
 					
 					edge->vert->isBoundary = true; //mark first vertex as Boundary
 					edge->next.lock()->next.lock()->vert->isBoundary = true; //mark second vertex as Boundary
@@ -288,8 +285,8 @@ void HalfEdgeMesh::Subdivide()
 		}
 
 		unsigned int currentvertex_index = tempVert->vertexIndex;
-		Vector3D currentvertex_pos = tempVert->vertex_data->vx_coords;
-		Vector3D currentvertex_normal = tempVert->vertex_data->nx_coords;
+		Vector3D currentvertex_pos = m_list_vertices[tempVert->vertexIndex].vx_coords;
+		Vector3D currentvertex_normal = m_list_vertices[tempVert->vertexIndex].nx_coords;
 
 		if(DEBUG)std::cout << "Started with Vertex Index: " << currentvertex_index << " at " << currentvertex_pos << std::endl;
 		
@@ -297,9 +294,9 @@ void HalfEdgeMesh::Subdivide()
 		
 		tempEdge = (tempEdge->next.lock());
 		tempVert = (tempEdge->vert);
-
+		
 		neighbours.insert(tempVert);
-		if (DEBUG)std::cout << "Neighbour with Vertex Index: " << tempVert->vertexIndex << " at " << tempVert->vertex_data->vx_coords << std::endl;
+		if (DEBUG)std::cout << "Neighbour with Vertex Index: " << tempVert->vertexIndex << " at " << m_list_vertices[tempVert->vertexIndex].vx_coords << std::endl;
 		
 		while (tempEdge->pair != nullptr)
 		{
@@ -307,11 +304,11 @@ void HalfEdgeMesh::Subdivide()
 			tempVert = (tempEdge->vert);
 			if (neighbours.find(tempVert) != neighbours.end())
 			{
-				if(DEBUG)std::cout << "Duplicate with Vertex Index: " << tempVert->vertexIndex << " at " << tempVert->vertex_data->vx_coords << std::endl;
+				if(DEBUG)std::cout << "Duplicate with Vertex Index: " << tempVert->vertexIndex << " at " << m_list_vertices[tempVert->vertexIndex].vx_coords << std::endl;
 				break;
 			}
 			neighbours.insert(tempVert);
-			if (DEBUG)std::cout << "** Neighbour with Vertex Index: " << tempVert->vertexIndex << " at " << tempVert->vertex_data->vx_coords << std::endl;
+			if (DEBUG)std::cout << "** Neighbour with Vertex Index: " << tempVert->vertexIndex << " at " << m_list_vertices[tempVert->vertexIndex].vx_coords << std::endl;
 		}
 
 		if (DEBUG)std::cout << "No more neighbours" << std::endl;
@@ -323,9 +320,9 @@ void HalfEdgeMesh::Subdivide()
 
 		for (auto n : neighbours)
 		{
-			if (DEBUG)std::cout << "Neighbour:" << n->vertex_data->vx_coords << std::endl;
-			average_pos = average_pos + n->vertex_data->vx_coords;
-			average_normal = average_normal + n->vertex_data->nx_coords;
+			if (DEBUG)std::cout << "Neighbour:" << m_list_vertices[n->vertexIndex].vx_coords << std::endl;
+			average_pos = average_pos + m_list_vertices[n->vertexIndex].vx_coords;
+			average_normal = average_normal + m_list_vertices[n->vertexIndex].nx_coords;
 		}
 		average_pos = average_pos * (1.0f/(float)neighbours.size());
 		average_normal = average_normal * (1.0f / (float)neighbours.size());

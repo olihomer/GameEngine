@@ -4,7 +4,6 @@
 #include "Graphics2D.h"
 #include "VertexMesh.h"
 #include <vector>
-#include <deque>
 
 
 class Mesh :
@@ -21,7 +20,7 @@ public:
 private:
     VertexBufferPtr m_vertex_buffer;
     IndexBufferPtr m_index_buffer;
-    std::deque<VertexMesh> m_list_vertices;
+    std::vector<VertexMesh> m_list_vertices;
     std::vector<unsigned int> m_list_indices;
     friend class HalfEdgeMesh;
 };
