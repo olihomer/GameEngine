@@ -36,7 +36,7 @@ Mesh::Mesh(const wchar_t* full_path) :Resource(full_path)
 	for (size_t s = 0; s < shapes.size(); s++)
 	{
 		size_t index_offset = 0;
-		m_list_vertices.reserve(shapes[s].mesh.indices.size());
+		//m_list_vertices.reserve(shapes[s].mesh.indices.size());
 		m_list_indices.reserve(shapes[s].mesh.indices.size());
 		
 		for (size_t f = 0; f < shapes[s].mesh.num_face_vertices.size(); f++)
@@ -97,7 +97,7 @@ Mesh::Mesh(BGRA* bitmap, int width, int height, float horiz_scale, float vert_sc
 	float miny = 999;
 	float maxy = 0;
 
-	m_list_vertices.reserve(width*height); //one vertex per pixel in bitmap
+	//m_list_vertices.reserve(width*height); //one vertex per pixel in bitmap
 	m_list_indices.reserve((width-1)*(height-1)*6); //six indices (two triangles) per square
 
 	for (int j = 0; j < height; j++)

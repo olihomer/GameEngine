@@ -48,9 +48,16 @@ void AppWindow::onCreate()
 	
 	GraphicsEngine* engine=GraphicsEngine::get();
 	
+	Vector2D a = Vector2D(0.5f, 0.7f);
+	Vector2D b = Vector2D(0.3f, 0.1f);
+	Vector2D c = a + b;
+	Vector2D d = c * 0.5f;
+
+	std::cout << a << b << c << d << std::endl;
+
 	// INIT 2D PLOTTING BITMAP
-	m_land_width = 3;
-	m_land_height = 3;
+	m_land_width = 3;// 100;
+	m_land_height = 3;// 100;
 	m_land_hscale = 1.0f;
 	m_land_vscale = 0.15f;
 	engine->getRenderSystem()->getGraphics2D()->createBitmap(m_land_width, m_land_height);
@@ -77,7 +84,7 @@ void AppWindow::onCreate()
 	m_sky_mesh = engine->getMeshManager()->createMeshFromFile(L"Assets\\Meshes\\sphere.obj");
 	m_halfedge_mesh = std::make_unique<HalfEdgeMesh>(m_landscape);
 	m_halfedge_mesh->Subdivide();
-	
+
 	//INIT SWAP CHAIN
 	m_swap_chain = engine->getRenderSystem()->createSwapChain(this->m_hwnd, width, height);
 	if (this->m_hwnd == nullptr)OutputDebugString("Warning: m_hwnd is null\n");
@@ -253,7 +260,7 @@ void AppWindow::updateWorld()
 	cc.m_light_direction = dir;
 
 	// KEEP CAMERA ABOVE LANDSCAPE
-	UpdateCamera();
+	//UpdateCamera();
 				
 	//OBJECTS - LOCAL TO WORLD TRANSFORM
 	cc.m_world.setIdentity();
@@ -383,7 +390,8 @@ void AppWindow::CreateLandscape(int width, int height, bool randomize)
 					tex = 1;
 				}
 			
-			BYTE h = (BYTE)(f * 255.0f); //map to [0,255]
+			BYTE h = 50;// (BYTE)(f * 255.0f); //map to [0,255]
+			
 			BGRA c = RGBA(tex, h, h, h);
 			
 			GraphicsEngine::get()->getRenderSystem()->getGraphics2D()->plotBitmap(xplot, yplot, c);

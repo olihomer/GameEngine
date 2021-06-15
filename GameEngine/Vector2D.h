@@ -19,8 +19,8 @@ public:
 	Vector2D operator+(const Vector2D& vector)
 	{
 		Vector2D sum;
-		sum.m_x = vector.m_x - m_x;
-		sum.m_y = vector.m_y - m_y;
+		sum.m_x = vector.m_x + m_x;
+		sum.m_y = vector.m_y + m_y;
 		return sum;
 	}
 
@@ -30,6 +30,14 @@ public:
 		diff.m_x = m_x - vector.m_x;
 		diff.m_y = m_y - vector.m_y;
 		return diff;
+	}
+
+	Vector2D operator*(const float& f)
+	{
+		Vector2D mult;
+		mult.m_x = m_x * f;
+		mult.m_y = m_y * f;
+		return mult;
 	}
 
 	friend std::ostream& operator<< (std::ostream& os, const Vector2D& vector)
